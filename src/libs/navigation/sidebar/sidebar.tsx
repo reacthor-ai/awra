@@ -1,4 +1,4 @@
-import { Clock, FolderPlus, Heart, Library, Plus, Save, Star, Upload, Video } from 'lucide-react'
+import { Clock, FolderPlus, Heart, Save, Star, Upload, Video } from 'lucide-react'
 import Link from "next/link"
 
 export function Sidebar() {
@@ -6,7 +6,7 @@ export function Sidebar() {
     <aside className="w-64 border-r bg-card p-4 space-y-6">
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2">
-          <Video className="h-6 w-6" />
+          <Video className="h-6 w-6"/>
         </Link>
       </div>
 
@@ -20,21 +20,21 @@ export function Sidebar() {
               href="#"
               className="flex items-center gap-3 rounded-lg bg-secondary px-4 py-2 text-secondary-foreground"
             >
-              <Clock className="h-4 w-4" />
+              <Clock className="h-4 w-4"/>
               Recent
             </Link>
             <Link
               href="#"
               className="flex items-center gap-3 rounded-lg px-4 py-2 text-muted-foreground hover:text-primary hover:bg-secondary"
             >
-              <Star className="h-4 w-4" />
+              <Star className="h-4 w-4"/>
               Featured
             </Link>
             <Link
               href="#"
               className="flex items-center gap-3 rounded-lg px-4 py-2 text-muted-foreground hover:text-primary hover:bg-secondary"
             >
-              <Save className="h-4 w-4" />
+              <Save className="h-4 w-4"/>
               Saved
             </Link>
           </nav>
@@ -49,28 +49,28 @@ export function Sidebar() {
               href="#"
               className="flex items-center gap-3 rounded-lg px-4 py-2 text-muted-foreground hover:text-primary hover:bg-secondary"
             >
-              <Video className="h-4 w-4" />
+              <Video className="h-4 w-4"/>
               All videos
             </Link>
             <Link
               href="#"
               className="flex items-center gap-3 rounded-lg px-4 py-2 text-muted-foreground hover:text-primary hover:bg-secondary"
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="h-4 w-4"/>
               Favorites
             </Link>
             <Link
               href="#"
               className="flex items-center gap-3 rounded-lg px-4 py-2 text-muted-foreground hover:text-primary hover:bg-secondary"
             >
-              <Upload className="h-4 w-4" />
+              <Upload className="h-4 w-4"/>
               Uploads
             </Link>
             <Link
               href="#"
               className="flex items-center gap-3 rounded-lg px-4 py-2 text-muted-foreground hover:text-primary hover:bg-secondary"
             >
-              <FolderPlus className="h-4 w-4" />
+              <FolderPlus className="h-4 w-4"/>
               New folder
             </Link>
           </nav>

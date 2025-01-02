@@ -81,8 +81,7 @@ export function NavigationSidebar() {
             <nav className="flex flex-col gap-2">
               {mainNavItems.map((item) => (
                 <Link key={item.title} href={item.href}>
-                  <Button
-                    variant="ghost"
+                  <div
                     className={cn(
                       "w-full justify-start gap-2",
                       item.title === 'Library' && "bg-accent"
@@ -93,7 +92,7 @@ export function NavigationSidebar() {
                     {item.title === 'Projects' && (
                       <Plus className="ml-auto h-4 w-4"/>
                     )}
-                  </Button>
+                  </div>
                 </Link>
               ))}
             </nav>
@@ -107,8 +106,7 @@ export function NavigationSidebar() {
               <nav className="flex flex-col gap-1">
                 {recentChats.map((chat) => (
                   <Link key={chat.id} href={`/chat/${chat.id}`}>
-                    <Button
-                      variant="ghost"
+                    <div
                       className="w-full justify-between px-2 py-1 h-auto font-normal"
                     >
                       <span className="truncate">{chat.title}</span>
@@ -119,7 +117,7 @@ export function NavigationSidebar() {
                       >
                         <MoreVertical className="h-4 w-4"/>
                       </Button>
-                    </Button>
+                    </div>
                   </Link>
                 ))}
               </nav>

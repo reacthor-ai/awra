@@ -1,14 +1,13 @@
 import { BillsResponse } from "@/types/bill";
+import { CACHE_TAG_PREFIX } from "@/api/utils/constant";
 
-interface GetBillsParams extends Record<string, string | number | undefined> {
+export interface GetBillsParams extends Record<string, string | number | undefined> {
   offset?: number;
   limit?: number;
   fromDateTime?: string;
   toDateTime?: string;
   sort?: 'updateDate+asc' | 'updateDate+desc';
 }
-
-const CACHE_TAG_PREFIX = 'congress-gov';
 
 /**
  * Creates URLSearchParams from GetBillsParams, validating values
@@ -27,7 +26,8 @@ function createSearchParams(params: GetBillsParams, apiKey: string): URLSearchPa
 
     switch (key) {
       case 'offset':
-        if (value < 0) throw new Error('Offset must be non-negative');
+        if (isNaN(Number(value))) throw new Error('Offset must be a valid number');
+        if (Number(value) < 0) throw new Error('Offset must be non-negative');
         searchParams.set(key, value.toString());
         break;
 
@@ -59,7 +59,7 @@ function createSearchParams(params: GetBillsParams, apiKey: string): URLSearchPa
 /**
  * Fetches bills from the Congress.gov API
  */
-async function getBills(
+export async function getBills(
   apiKey: string,
   params: GetBillsParams = {}
 ): Promise<BillsResponse> {

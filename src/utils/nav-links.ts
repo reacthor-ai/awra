@@ -1,9 +1,12 @@
 export const navigationLinks = {
   content: ({stateId}: { stateId: string }) => `/c/${stateId}`,
   billDetails: (
-    {billNumber, stateId}: {
+    {billNumber, stateId, congress, billType}: {
       billNumber: string,
-      stateId: string
+      stateId: string,
+      congress: string,
+      billType: string
     }
-  ) => `/c/${stateId}/bill/${billNumber}`
+  ) => `/c/${stateId}/bill/${billNumber}?congress=${congress}&billType=${billType}`,
+  library: ({stateId}: { stateId: string }) => `/c/${stateId}/library`
 } as const
