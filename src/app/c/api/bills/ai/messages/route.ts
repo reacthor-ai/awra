@@ -27,16 +27,15 @@ export async function GET(req: Request) {
         thread_id: userId,
       }
     };
-    // Get current state from graph
+
     const state = await graph.getState(config);
     const messages = state.values.messages || [];
 
-    const filteredMessages = messages.filter((message: any) => {
-      return !(message instanceof AIMessageChunk)
-    }).map((message: AIMessage | HumanMessage) => ({
-      content: message.content,
-      role: message._getType() === 'human' ? 'user' : 'assistant'
-    }));
+    const filteredMessages = messages.filter((message: any) => !(message instanceof AIMessageChunk))
+      .map((message: AIMessage | HumanMessage) => ({
+        content: message.content,
+        role: message._getType() === 'human' ? 'user' : 'assistant'
+      }));
 
     return NextResponse.json({messages: filteredMessages}, {status: 200});
   } catch (error: any) {

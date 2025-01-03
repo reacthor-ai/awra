@@ -66,7 +66,7 @@ export function BillsFeed({state}: BillsFeedProps) {
   }, [data, selectedPolicy]);
 
   return (
-    <MainNavigation title='Discover'>
+    <>
       <div className='flex overflow-hidden items-center justify-between sticky top-0 bg-background z-20'>
       <div>
           <h1 className="text-2xl font-semibold p-4">Discover</h1>
@@ -125,6 +125,6 @@ export function BillsFeed({state}: BillsFeedProps) {
           <BillGrid bills={filteredBills} state={state}/>
         ) : null}
       </div>
-    </MainNavigation>
+    </>
   );
 }

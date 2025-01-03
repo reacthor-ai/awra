@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { LangChainAdapter, StreamData } from 'ai';
 import { billAgent } from "@/agents/bill/main";
 import { chatAnthropic } from "@/agents/anthropic";
-import { BILL_CHAT_PROMPT } from "@/agents/bill/prompts";
+import { BILL_CHAT_PROMPT, billChatPrompt, BillPromptParams } from "@/agents/bill/prompts";
 import { saveMessages } from "@/app/c/api/bills/ai/bill-agent/save-message";
 
 const PUBLIC_POSTGRES_URL = process.env.PUBLIC_POSTGRES_URL!;
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
       billUrl,
       loggedIn,
       messages,
+      voiceType,
       cboUrl = null,
     } = body;
 
@@ -40,15 +41,19 @@ export async function POST(req: NextRequest) {
     };
 
     const state = await graph.getState(config);
-    const formattedPrompt = await BILL_CHAT_PROMPT.formatMessages({
+
+    const promptParams = {
       current_time: new Date().toISOString(),
       chat_history: state.values.messages || [],
       bill_analysis: billResults.analysisState.finalSummary,
       cost_info: billResults.analysisState.costEstimate?.summary
         ? `Cost Estimate Analysis:\n${billResults.analysisState.costEstimate.summary}`
         : "Note: No official cost estimate is currently available for this bill.",
-      user_query: prompt
-    });
+      user_query: prompt,
+      voiceType
+    } satisfies BillPromptParams
+
+    const formattedPrompt = await billChatPrompt(promptParams)
 
     const stream = await chatAnthropic.stream(formattedPrompt);
     return LangChainAdapter.toDataStreamResponse(stream, {

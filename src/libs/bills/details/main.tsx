@@ -1,6 +1,6 @@
 'use client'
 
-import { MoreVertical, SendHorizontal } from "lucide-react";
+import { ArrowLeft, MoreVertical, SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiRoutes } from "@/utils/api-links";
@@ -14,6 +14,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { USALoadingIndicator } from "@/libs/bills/details/bill-details-loading";
 import BillDetailsSkeleton from "@/app/c/[state]/bill/[billNumber]/loading";
+import { VoiceType } from "@/types/ai";
+import { VoiceToggle } from "@/libs/bills/details/voice-toggle";
+import { useRouter } from "next/navigation";
 
 const commonQuestions = [
   {
@@ -48,7 +51,20 @@ const commonQuestions = [
   }
 ];
 
-function ChatMessage({role, content}: { role: 'system' | 'user' | 'assistant' | 'data'; content: string }) {
+type ChatMessageProps =
+  {
+    role: 'system' | 'user' | 'assistant' | 'data'; content: string, voice: VoiceType
+  }
+
+function ChatMessage({role, content, voice}: ChatMessageProps) {
+  const isAssistant = role === 'assistant' || role === 'system';
+  const bgColor = isAssistant
+    ? (voice === 'uncleSam' ? "bg-red-100" : "bg-blue-100")
+    : "bg-gray-100";
+  const textColor = isAssistant
+    ? (voice === 'uncleSam' ? "text-red-900" : "text-blue-900")
+    : "text-gray-900";
+
   return (
     <motion.div
       initial={{opacity: 0, y: 20}}
@@ -62,27 +78,30 @@ function ChatMessage({role, content}: { role: 'system' | 'user' | 'assistant' | 
     >
       <Avatar className={cn(
         "h-10 w-10",
-        role === 'user' ? "bg-blue-500" : "bg-green-500"
+        role === 'user' ? "bg-gray-500" : (voice === 'uncleSam' ? "bg-red-500" : "bg-blue-500")
       )}>
         {role === 'user' ? (
           <AvatarFallback>U</AvatarFallback>
         ) : (
           <>
             <AvatarImage
-              src={'https://www.brownstoner.com/wp-content/uploads/2024/07/uncle-sam-i-want-you-poster-library-congress-flagg-illustration-feature-3.jpg'}
-              alt="Uncle Sam"/>
-            <AvatarFallback>US</AvatarFallback>
+              src={voice === 'uncleSam' ? 'https://www.brownstoner.com/wp-content/uploads/2024/07/uncle-sam-i-want-you-poster-library-congress-flagg-illustration-feature-3.jpg' : '/analyst-avatar.jpg'}
+              alt={voice === 'uncleSam' ? "Uncle Sam" : "Analyst"}
+            />
+            <AvatarFallback>{voice === 'uncleSam' ? "US" : "A"}</AvatarFallback>
           </>
         )}
       </Avatar>
       <div className={cn(
         "flex-1 px-6 py-4 rounded-2xl shadow-lg",
-        role === 'user' ? "bg-blue-100 text-blue-900" : "bg-green-100 text-green-900"
+        bgColor,
+        textColor
       )}>
         {role === 'user' ? (
           <p className="text-base leading-relaxed">{content}</p>
         ) : (
-          <ReactMarkdown className="text-base leading-relaxed prose prose-green max-w-none">
+          <ReactMarkdown
+            className={cn("text-base leading-relaxed prose max-w-none", voice === 'uncleSam' ? "prose-red" : "prose-blue")}>
             {content}
           </ReactMarkdown>
         )}
@@ -91,7 +110,7 @@ function ChatMessage({role, content}: { role: 'system' | 'user' | 'assistant' | 
   );
 }
 
-function ChatContainer({messages}: { messages: Message[] }) {
+function ChatContainer({messages, voice}: { messages: Message[]; voice: VoiceType }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -103,48 +122,10 @@ function ChatContainer({messages}: { messages: Message[] }) {
       <div className="space-y-6 max-w-4xl mx-auto">
         <AnimatePresence>
           {messages.map((message, index) => (
-            <ChatMessage key={index} role={message.role} content={message.content}/>
+            <ChatMessage key={index} role={message.role} content={message.content} voice={voice}/>
           ))}
         </AnimatePresence>
         <div ref={messagesEndRef}/>
-      </div>
-    </div>
-  );
-}
-
-function ChatItem({title}: { title: string }) {
-  return (
-    <div className="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100">
-      <span className="text-sm text-gray-700">{title}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="opacity-0 group-hover:opacity-100 text-gray-500"
-      >
-        <MoreVertical className="h-4 w-4"/>
-      </Button>
-    </div>
-  );
-}
-
-function SidebarContent() {
-  return (
-    <div className="space-y-6 px-2">
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-gray-500 text-sm font-medium mb-2">Today</h3>
-          <div className="space-y-1">
-            <ChatItem title="Recent US Congress Bill"/>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-gray-500 text-sm font-medium mb-2">Previous 30 Days</h3>
-          <div className="space-y-1">
-            <ChatItem title="Things to do in NYC"/>
-            <ChatItem title="Vacation Planning Timing"/>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -159,6 +140,7 @@ type BillDetails = {
   policy: string
   url: string
   cboUrl: string | null
+  sessionId: string
 }
 
 export function BillDetails(props: BillDetails) {
@@ -170,12 +152,14 @@ export function BillDetails(props: BillDetails) {
     latestAction,
     policy,
     cboUrl,
+    sessionId,
     url: billUrl
   } = props
-  const userId = `91-${billNumber}`
   const [messageLoader, setMessagesLoader] = useState(true)
   const [isClient, setIsClient] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [voice, setVoice] = useState<VoiceType>('uncleSam');
+  const router = useRouter()
 
   useEffect(() => {
     setIsClient(true);
@@ -192,14 +176,15 @@ export function BillDetails(props: BillDetails) {
   } = useChat({
     api: apiRoutes.bills.agent,
     body: {
-      userId,
+      userId: sessionId,
       billUrl,
       loggedIn: false,
-      cboUrl
+      cboUrl,
+      voiceType: voice
     },
   });
 
-  const {messages: internalMessages, isLoadingAIMessages} = useGetAIMessages(userId, false)
+  const {messages: internalMessages, isLoadingAIMessages} = useGetAIMessages(sessionId, false)
 
   const syncMessages = useCallback(() => {
     if (!isLoading && (internalMessages && internalMessages?.length > 0)) {
@@ -213,6 +198,10 @@ export function BillDetails(props: BillDetails) {
     }
     setMessagesLoader(false)
   }, [isLoading, internalMessages, aiChatMessages, setMessages]);
+
+  const handleVoiceToggle = useCallback((newVoice: VoiceType) => {
+    setVoice(newVoice);
+  }, []);
 
   useEffect(() => {
     syncMessages();
@@ -238,14 +227,25 @@ export function BillDetails(props: BillDetails) {
         {/* Header */}
         <div className="border-b bg-white shadow-sm sticky top-0">
           <div className="max-w-5xl mx-auto px-6 py-4">
-            <div className="flex items-center gap-6">
-              <div>
+            <div className="flex-row items-center justify-between gap-6">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  router.back()
+                }}
+                className="p-2 h-auto"
+              >
+                <ArrowLeft className="h-10 w-10"/>
+                <span className="sr-only">Back</span>
+              </Button>
+              <div className='mb-2'>
                 <Badge className='mb-2 text-sm'>{policy}</Badge>
                 <h1 className="text-md font-semibold">{title}</h1>
                 <p className="text-sm text-gray-600 mt-1">
                   {originChamberCode} {billNumber} - {originChamber} {latestAction}
                 </p>
               </div>
+              <VoiceToggle voice={voice} onToggle={handleVoiceToggle}/>
             </div>
           </div>
         </div>
@@ -283,7 +283,7 @@ export function BillDetails(props: BillDetails) {
                   </div>
                 </div>
               ) : (
-                <ChatContainer messages={messages}/>
+                <ChatContainer voice={voice} messages={messages}/>
               )}
         </div>
 

@@ -1,83 +1,100 @@
 import { formatDistanceToNow } from 'date-fns'
-import { Lock, MoreVertical, MessageSquare } from 'lucide-react'
+import { MoreVertical } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Separator } from "@/components/ui/separator"
+import Link from 'next/link'
+import type { ChatAwraUserExtend } from "@/lib/prisma"
+import { navigationLinks } from "@/utils/nav-links";
 
 interface ChatItemProps {
-  chat: {
-    id: string
-    title: string
-    preview: string
-    isLocked: boolean
-    updatedAt: Date
-    user: {
-      username: string
-      avatar?: string
-    }
-  }
+  chat: ChatAwraUserExtend
 }
 
-export function ChatItem({ chat }: ChatItemProps) {
+export function ChatItem({chat}: ChatItemProps) {
+  const userInitial = chat.user?.name?.[0] ||
+    chat.user?.email?.[0] ||
+    'U'
+
+  const displayName = chat.user?.name ||
+    chat.user?.email?.split('@')[0] ||
+    'User'
+
   return (
-    <Card className="group transition-all duration-300 hover:shadow-md">
-      <CardHeader className="p-4 pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            <h3 className="font-medium text-base flex items-center gap-2">
+    <div className="group border relative flex min-h-[116px] flex-col rounded-lg">
+      <Link
+        href={navigationLinks.billDetails({
+          billNumber: chat.roomId,
+          stateId: '',
+          congress: '',
+          billType: ''
+        })}
+        className="absolute inset-0 z-10 cursor-pointer overflow-hidden rounded-lg"
+      >
+        <span className="sr-only">View Chat</span>
+      </Link>
+
+      <div className="grid flex-1 auto-rows-min items-start gap-3 p-3 pt-3.5 text-sm">
+        <div className="grid auto-rows-min items-start gap-2">
+          <div className="flex max-w-[90%] items-center gap-1">
+            <h3 className="whitespace-pre-wrap font-medium leading-none tracking-tight truncate">
               {chat.title}
-              {chat.isLocked && (
-                <Lock className="h-4 w-4 text-muted-foreground" />
-              )}
             </h3>
           </div>
+          <p className="text-muted-foreground text-sm line-clamp-1">
+            {chat.summary || `Discussion about Bill ${chat.roomId}`}
+          </p>
+        </div>
+      </div>
+
+      <Separator className="mx-3 w-auto"/>
+
+      <div className="flex items-center p-6 h-11 gap-3 rounded-b-lg px-3 py-0">
+        <div className="flex min-w-0 items-center gap-1 text-sm leading-none text-gray-500">
+          <Avatar className="size-4 rounded-sm">
+            <AvatarImage src={chat.user?.image || undefined} alt={displayName}/>
+            <AvatarFallback className="text-[0.5rem] bg-alpha-400">
+              {userInitial.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-foreground font-medium">{displayName}</span>
+          <span className="hidden truncate text-nowrap sm:inline">
+            Updated {formatDistanceToNow(chat.updatedAt, {addSuffix: true})}
+          </span>
+          <span className="inline truncate text-nowrap sm:hidden">
+            Updated {formatDistanceToNow(chat.updatedAt, {addSuffix: true})}
+          </span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground"
+                className="relative z-20 size-7 shrink-0 rounded-md p-0 opacity-0 group-hover:opacity-100 text-gray-900"
               >
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More options</span>
+                <MoreVertical className="h-4 w-4"/>
+                <span className="sr-only">Open chat actions</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
-              <DropdownMenuItem>Copy Link</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                Delete
+              <DropdownMenuItem onClick={(e) => {
+                e.preventDefault()
+                navigator.clipboard.writeText(window.location.origin + `/bills/${chat.roomId}/chat/${chat.id}`)
+              }}>
+                Copy Link
               </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardHeader>
-
-      <CardContent className="p-4 pt-0 space-y-3">
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {chat.preview}
-        </p>
-
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Avatar className="h-5 w-5">
-            <AvatarImage src={chat.user.avatar} alt={chat.user.username} />
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-              {chat.user.username[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <span>{chat.user.username}</span>
-          <span className="text-muted-foreground/60">·</span>
-          <span>
-            Updated {formatDistanceToNow(chat.updatedAt, { addSuffix: true })}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

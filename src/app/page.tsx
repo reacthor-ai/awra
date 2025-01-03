@@ -8,8 +8,7 @@ async function getStates() {
     if (!response.ok) {
       return {"N/A": "Not Applicable"}
     }
-    const states = await response.json();
-    return states;
+    return await response.json()
   } catch (error) {
     console.error("Failed to fetch states:", error);
     return {"N/A": "Not Applicable"}

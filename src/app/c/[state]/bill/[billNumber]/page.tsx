@@ -6,12 +6,17 @@ import { getBillDetails } from "@/api/external/bill/get-bills-details";
 import { getBillText } from "@/api/external/bill/get-bills-by-text";
 import { constructCBOUrl } from "@/utils/url";
 import { notFound } from "next/navigation";
+import { getOrCreateChat } from "@/api/internal/chat/getOrCreateChat";
+import { auth } from 'auth'
+import { getChatSessionId } from "@/utils/getChatSessionId";
 
-export default async function BillDetailPage(params: NextPageProps<{ billNumber: string, state: string }>) {
-  const {params: {billNumber, state}, searchParams} = params;
+export default async function BillDetailPage(props: NextPageProps<{ billNumber: string, state: string }>) {
+  const nextParams = await props.params
+  const {billNumber, state} = nextParams;
 
-  const congressParams = (await searchParams)['congress'] as string;
-  const billTypeParams = (await searchParams)['billType'] as BillType;
+  const congressParams = (await props.searchParams)['congress'] as string;
+  const billTypeParams = (await props.searchParams)['billType'] as BillType;
+  const session = await auth()
 
   const [billDetails, billByText] = await Promise.all([
     getBillDetails(
@@ -29,6 +34,12 @@ export default async function BillDetailPage(params: NextPageProps<{ billNumber:
     )
   ])
 
+  const chatResult = await getOrCreateChat(
+    (session!.user.id as string),
+    billNumber,
+    `Discussion: ${billDetails.bill.title} ${billNumber}`
+  )
+
   const textFormat = billByText.textVersions[0] ? billByText.textVersions[0]?.formats?.find(
     (format) => format.type === 'Formatted Text'
   ) : null
@@ -38,6 +49,12 @@ export default async function BillDetailPage(params: NextPageProps<{ billNumber:
   if (!textFormat?.url) {
     notFound()
   }
+
+  const sessionId = getChatSessionId({
+    userId: (session!.user.id as string),
+    roomId: (chatResult.chat?.id as string),
+    billNumber,
+  })
 
   return (
     <MainNavigation title={null}>
@@ -50,6 +67,7 @@ export default async function BillDetailPage(params: NextPageProps<{ billNumber:
         policy={billDetails.bill?.policyArea?.name ?? ''}
         url={textFormat.url}
         cboUrl={cboUrl}
+        sessionId={sessionId}
       />
     </MainNavigation>
   )
