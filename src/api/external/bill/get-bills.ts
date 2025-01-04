@@ -73,12 +73,12 @@ export async function getBills(
     },
     next: {
       tags: [`${CACHE_TAG_PREFIX}-bills`],
-      revalidate: 3600 // Cache for 1 hour
+      revalidate: 7200 // Cache for 2 hours
     }
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    return Promise.resolve({} as BillsResponse)
   }
 
   return response.json() as Promise<BillsResponse>;

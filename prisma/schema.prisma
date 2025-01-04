@@ -53,6 +53,8 @@ model User {
 model Chat {
   id        String   @id @default(cuid())
   roomId    String
+  chatType  ChatType @default(GENERAL) // Enum for chat types
+  metadata  Json?
   title     String?
   summary   String?
   createdAt DateTime @default(now())
@@ -60,7 +62,12 @@ model Chat {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, roomId]) // Make roomId unique per user
-  @@index([roomId]) // Index for searching by roomId
+  @@unique([userId, roomId])
   @@index([userId])
+  @@index([chatType])
+}
+
+enum ChatType {
+  GENERAL
+  BILL
 }

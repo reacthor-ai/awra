@@ -4,17 +4,24 @@ import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import type { AwraUser } from "@/lib/prisma"
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth/next";
+import { getServerSession } from "next-auth/next"
 
 const config = {
   adapter: PrismaAdapter(prisma),
   session: {
-    strategy: "jwt" // Explicitly set JWT strategy
+    strategy: "jwt"
   },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     CredentialsProvider({
       id: "guest",
@@ -27,7 +34,6 @@ const config = {
           throw new Error('Guest ID is required')
         }
 
-        // Try to find existing guest user
         let user = await prisma.user.findFirst({
           where: {
             guestId: credentials.guestId
@@ -63,18 +69,57 @@ const config = {
     })
   ],
   callbacks: {
-    async jwt({token, user: nextAuthUser, trigger, session}) {
-      const user = nextAuthUser as AwraUser
+    async signIn({user, account, profile}) {
+      if (account?.provider === 'google') {
+        if (!(profile as { email_verified: boolean })?.email_verified) {
+          return false
+        }
+
+        const existingGuest = await prisma.user.findFirst({
+          where: {
+            isGuest: true,
+            email: user.email
+          }
+        })
+
+        if (existingGuest) {
+          const updatedUser = await prisma.user.update({
+            where: {id: existingGuest.id},
+            data: {
+              name: profile.name,
+              email: profile.email,
+              image: profile.picture,
+              isGuest: false,
+              emailVerified: new Date(),
+              lastLoginAt: new Date()
+            }
+          })
+
+          user.name = updatedUser.name
+          user.email = updatedUser.email
+          user.image = updatedUser.image
+          user.isGuest = updatedUser.isGuest
+          return true
+        }
+      }
+
+      return true
+    },
+    async jwt({token, user, account, profile}) {
       if (user) {
         token.id = user.id
         token.isGuest = user.isGuest
         token.guestId = user.guestId
         token.name = user.name
         token.email = user.email
+        token.picture = user.image
       }
 
-      if (trigger === "update" && session) {
-        return {...token, ...session}
+      if (account?.provider === 'google' && profile) {
+        token.name = profile.name
+        token.email = profile.email
+        token.picture = profile.picture
+        token.isGuest = false
       }
 
       return token
@@ -88,15 +133,31 @@ const config = {
           isGuest: token.isGuest,
           guestId: token.guestId,
           name: token.name,
-          email: token.email
+          email: token.email,
+          image: token.picture
         }
       }
     }
   },
   events: {
-    async signIn({user: nextAuthUser}) {
+    async signIn({user: nextAuthUser, account, profile}) {
       const user = nextAuthUser as AwraUser
-      if (user.isGuest) {
+
+      // Handle Google sign in
+      if (account?.provider === 'google' && profile) {
+        await prisma.user.update({
+          where: {id: user.id},
+          data: {
+            emailVerified: new Date(),
+            lastLoginAt: new Date(),
+            name: profile.name,
+            image: profile.picture,
+            email: profile.email,
+            isGuest: false
+          }
+        })
+      } else {
+        // Update lastLoginAt for guest users
         await prisma.user.update({
           where: {id: user.id},
           data: {lastLoginAt: new Date()}

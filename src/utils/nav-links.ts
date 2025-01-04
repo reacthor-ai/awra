@@ -8,5 +8,6 @@ export const navigationLinks = {
       billType: string
     }
   ) => `/c/${stateId}/bill/${billNumber}?congress=${congress}&billType=${billType}`,
-  library: ({stateId}: { stateId: string }) => `/c/${stateId}/library`
+  library: ({stateId}: { stateId: string }) => `/c/${stateId}/library`,
+  settings: ({ stateId }: { stateId: string }) => `/c/${stateId}/setting`
 } as const

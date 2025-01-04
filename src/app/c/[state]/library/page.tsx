@@ -2,9 +2,10 @@ import MainNavigation from "@/libs/navigation/main";
 import { NextPageProps } from "@/utils/next-props";
 import { Library } from "@/libs/library/main";
 import { auth } from "auth";
-import prisma, { ChatAwraUserExtend } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
-export default async function LibraryPage(_: NextPageProps<{ state: string }>) {
+export default async function LibraryPage(props: NextPageProps<{ state: string }>) {
+  const nextParams = await props.params
 
   const session = await auth()
 
@@ -20,13 +21,18 @@ export default async function LibraryPage(_: NextPageProps<{ state: string }>) {
       summary: true,
       createdAt: true,
       updatedAt: true,
-      userId: true
+      userId: true,
+      chatType: true,
+      metadata: true
     }
   })
 
   return (
     <MainNavigation title='Library'>
-      <Library chatList={chatList as ChatAwraUserExtend[]} />
+      <Library
+        chatList={chatList}
+        stateId={nextParams.state}
+      />
     </MainNavigation>
   );
 }

@@ -3,9 +3,10 @@ import { ChatAwraUserExtend } from "@/lib/prisma";
 
 type LibraryProps = {
   chatList: ChatAwraUserExtend[]
+  stateId: string
 }
 
-export function Library({chatList}: LibraryProps) {
+export function Library({chatList, stateId}: LibraryProps) {
   return (
     <div className="flex h-screen flex-col bg-white">
       {/* Header */}
@@ -22,7 +23,7 @@ export function Library({chatList}: LibraryProps) {
               {chatList.map((chat, key) => {
                 return (
                   <div key={chat.id} className={`${key + 1 === chatList.length ? 'mb-14' : 'mb-2'}`}>
-                    <ChatItem chat={chat}/>
+                    <ChatItem stateId={stateId} chat={chat}/>
                   </div>
                 )
               })}

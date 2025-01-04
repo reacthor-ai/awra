@@ -1,4 +1,4 @@
-import { prisma, type Chat } from '@/lib/prisma'
+import { type Chat, ChatType, prisma } from '@/lib/prisma'
 
 const GUEST_CHAT_LIMIT = 5  // Maximum number of chats a guest can create
 
@@ -9,11 +9,23 @@ interface ChatCreationResult {
   remainingChats?: number | null
 }
 
-export async function getOrCreateChat(
-  userId: string,
-  roomId: string,
+type GetOrCreateBillChat = {
+  userId: string
+  roomId: string
   title?: string
-): Promise<ChatCreationResult> {
+  congress?: number
+  billType?: string
+}
+
+export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<ChatCreationResult> {
+  const {
+    userId,
+    roomId,
+    title,
+    congress,
+    billType
+  } = params
+
   try {
     // First, try to find an existing chat for this user and roomId
     let existingChat = await prisma.chat.findFirst({
@@ -66,6 +78,11 @@ export async function getOrCreateChat(
           userId,
           roomId,
           title: title || `Chat ${roomId}`,
+          chatType: ChatType.BILL,
+          metadata: {
+            congress,
+            billType
+          }
         },
       })
     )

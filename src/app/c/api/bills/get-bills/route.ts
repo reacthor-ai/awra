@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getBills, GetBillsParams } from "@/api/external/bill/get-bills";
-import { CACHE_TAG_PREFIX } from "@/api/utils/constant";
 import { BillDetail } from "@/types/bill-details";
 
 export async function GET(req: Request) {
@@ -20,6 +19,11 @@ export async function GET(req: Request) {
     };
 
     const billsResponse = await getBills(apiKey, params);
+
+    if (!("bills" in billsResponse)) {
+      return NextResponse.json({error: 'Congress API is down', bills: []}, {status: 500});
+    }
+
     const searchSpecificBillParams = new URLSearchParams();
     searchSpecificBillParams.set('api_key', apiKey)
     const additionalBillsPromises = billsResponse.bills.map(async (billDetail) => {
@@ -39,9 +43,12 @@ export async function GET(req: Request) {
     })
     const additionalBills = await Promise.all(additionalBillsPromises)
 
-    return NextResponse.json(additionalBills, {status: 200});
+    return NextResponse.json({
+      bills: additionalBills,
+      error: null
+    }, {status: 200});
   } catch (error) {
     console.error('Error fetching bills:', error);
-    return NextResponse.json({error: 'Internal Server Error'}, {status: 500});
+    return NextResponse.json({bills: [], error: 'Internal Server Error'}, {status: 500});
   }
 }

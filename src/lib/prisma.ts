@@ -2,7 +2,7 @@
 // defined in the global scope. This is because the global object is only
 // defined in the global scope in Node.js and not in the browser.
 
-import { PrismaClient, User as AwraUser, Chat } from '@prisma/client'
+import { type Chat, ChatType, PrismaClient, type User as AwraUser } from '@prisma/client'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
@@ -15,5 +15,6 @@ type ChatAwraUserExtend = Chat & {
 }
 
 export type { AwraUser, Chat, ChatAwraUserExtend }
+export { ChatType }
 
 export default prisma

@@ -88,7 +88,7 @@ export async function getBillText(
     },
     next: {
       tags: [`${CACHE_TAG_PREFIX}-bill-text-${congress}-${billType}-${billNumber}`],
-      revalidate: 3600 // Cache for 1 hour
+      revalidate: 7200 // Cache for 2 hours
     }
   });
 

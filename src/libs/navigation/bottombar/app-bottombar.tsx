@@ -1,23 +1,23 @@
 'use client'
 
-import { CompassIcon, Mail, Users } from 'lucide-react'
+import { CompassIcon, SettingsIcon, Users } from 'lucide-react'
 import { createElement, useState } from "react";
-import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { navigationLinks } from "@/utils/nav-links";
 
 type NavItems = {
   label: string
-  id: 'discover' | 'library' | 'contact'
+  id: 'discover' | 'library' | 'settings'
   icon: typeof Users
 }
 
 const navItems: NavItems[] = [
   {id: 'discover', label: 'Discover', icon: CompassIcon},
   {id: 'library', label: 'Library', icon: Users},
-  {id: 'contact', label: 'Contact', icon: Mail},
+  {id: 'settings', label: 'Settings', icon: SettingsIcon},
 ]
 
-export const BottomNav = ({ title }: { title: string }) => {
+export const BottomNav = ({title}: { title: string }) => {
   const [active, setActive] = useState(title.toLowerCase())
   const router = useRouter()
   const params = useParams()
@@ -47,6 +47,15 @@ export const BottomNav = ({ title }: { title: string }) => {
                       setActive(title.toLowerCase())
                       router.push(
                         navigationLinks.content({
+                          stateId: params["state"] as string
+                        })
+                      )
+                    }
+
+                    if (item.id === 'settings') {
+                      setActive(title.toLowerCase())
+                      router.push(
+                        navigationLinks.settings({
                           stateId: params["state"] as string
                         })
                       )

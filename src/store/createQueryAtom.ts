@@ -53,7 +53,6 @@ export const createQueryAtom = <T, E, QueryError>(
               error,
             }
           }
-
           return {
             status: 'fulfilled',
             result: result as E,

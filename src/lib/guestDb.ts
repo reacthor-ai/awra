@@ -7,7 +7,6 @@ export interface GuestUser {
   lastLoginAt: Date;
 }
 
-// Define the database class
 export class GuestDB extends Dexie {
   guestUsers!: Table<GuestUser>;
 

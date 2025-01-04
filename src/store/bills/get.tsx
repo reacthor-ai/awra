@@ -20,7 +20,7 @@ const getBillsQueryParamsAtom = atom<GetBillsQueryParams>({})
 
 export const getBillsQueryAtom = createQueryAtom<
   GetBillsQueryParams,
-  ModifiedBill[],
+  { bills: ModifiedBill[] },
   unknown
 >(
   'getBills',
@@ -46,7 +46,7 @@ export const useGetBills = (initialParams: GetBillsQueryParams = {}) => {
   }, [initialParams, fetchBills]);
 
   return {
-    data: data?.result,
+    data: data?.result?.bills,
     isLoadingBills: isLoading,
     error,
     refetchBills: refetch,
