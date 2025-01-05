@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
         ? `Cost Estimate Analysis:\n${billResults.analysisState.costEstimate.summary}`
         : "Note: No official cost estimate is currently available for this bill.",
       user_query: prompt,
-      voiceType
+      voiceType,
+      error: state.values.analysisState?.error,
     } satisfies BillPromptParams
 
     const formattedPrompt = await billChatPrompt(promptParams)

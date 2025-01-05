@@ -3,7 +3,6 @@ import { NextPageProps } from "@/utils/next-props";
 import { Settings } from "@/libs/settings/main";
 import { auth } from "auth";
 import { getRemainingGuestChats } from "@/api/internal/chat/getOrCreateBillChat";
-import prisma from "@/lib/prisma";
 
 export default async function SettingPage(_: NextPageProps<{ state: string }>) {
   const session = await auth()
@@ -16,7 +15,7 @@ export default async function SettingPage(_: NextPageProps<{ state: string }>) {
   const name = session?.user.name ?? ''
 
   return (
-    <MainNavigation title='Setting'>
+    <MainNavigation title='Settings'>
       <Settings
         remainingChat={remainingGuestChat}
         name={name}

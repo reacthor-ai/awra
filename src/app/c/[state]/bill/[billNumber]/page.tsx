@@ -10,6 +10,7 @@ import { getOrCreateBillChat } from "@/api/internal/chat/getOrCreateBillChat";
 import { auth } from 'auth'
 import { getChatSessionId } from "@/utils/getChatSessionId";
 import { navigationLinks } from "@/utils/nav-links";
+import { transformRoomId } from "@/utils/transformRoomId";
 
 export default async function BillDetailPage(props: NextPageProps<{ billNumber: string, state: string }>) {
   const nextParams = await props.params
@@ -38,7 +39,7 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
   const chatResult = await getOrCreateBillChat({
     userId: (session!.user.id as string),
     title: `Discussion: ${billDetails.bill.title} ${billNumber}`,
-    roomId: billNumber,
+    roomId: transformRoomId(billDetails.bill.type, billDetails.bill.number),
     congress: parseInt(congressParams, 10),
     billType: (billTypeParams.toLowerCase() as BillType)
   })
@@ -62,9 +63,9 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
   const sessionId = getChatSessionId({
     userId: (session!.user.id as string),
     roomId: (chatResult.chat?.id as string),
-    billNumber,
+    billNumber: transformRoomId(billDetails.bill.type, billDetails.bill.number),
   })
-
+  const guestId = session?.user.guestId as string
   return (
     <MainNavigation title={null}>
       <BillDetails
@@ -77,6 +78,7 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
         url={textFormat.url}
         cboUrl={cboUrl}
         sessionId={sessionId}
+        guestId={guestId}
       />
     </MainNavigation>
   )

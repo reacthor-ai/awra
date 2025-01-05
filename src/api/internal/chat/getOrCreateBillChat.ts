@@ -23,7 +23,7 @@ export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<
     roomId,
     title,
     congress,
-    billType
+    billType,
   } = params
 
   try {

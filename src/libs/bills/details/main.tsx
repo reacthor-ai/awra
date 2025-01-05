@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, MoreVertical, SendHorizontal } from "lucide-react";
+import { ArrowLeft, SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiRoutes } from "@/utils/api-links";
@@ -17,6 +17,8 @@ import BillDetailsSkeleton from "@/app/c/[state]/bill/[billNumber]/loading";
 import { VoiceType } from "@/types/ai";
 import { VoiceToggle } from "@/libs/bills/details/voice-toggle";
 import { useRouter } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useVoicePreference } from "@/libs/bills/details/useVoicePreference";
 
 const commonQuestions = [
   {
@@ -141,6 +143,7 @@ type BillDetails = {
   url: string
   cboUrl: string | null
   sessionId: string
+  guestId: string
 }
 
 export function BillDetails(props: BillDetails) {
@@ -153,13 +156,15 @@ export function BillDetails(props: BillDetails) {
     policy,
     cboUrl,
     sessionId,
+    guestId,
     url: billUrl
   } = props
   const [messageLoader, setMessagesLoader] = useState(true)
   const [isClient, setIsClient] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const [voice, setVoice] = useState<VoiceType>('uncleSam');
+  const {voice, setVoice} = useVoicePreference(guestId)
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setIsClient(true);
@@ -184,7 +189,7 @@ export function BillDetails(props: BillDetails) {
     },
   });
 
-  const {messages: internalMessages, isLoadingAIMessages} = useGetAIMessages(sessionId, false)
+  const {messages: internalMessages, isLoadingAIMessages, refetchAIMessages} = useGetAIMessages(sessionId, false)
 
   const syncMessages = useCallback(() => {
     if (!isLoading && (internalMessages && internalMessages?.length > 0)) {
@@ -221,13 +226,13 @@ export function BillDetails(props: BillDetails) {
   if (isLoadingAIMessages) return <BillDetailsSkeleton/>
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="border-b bg-white shadow-sm sticky top-0">
-          <div className="max-w-5xl mx-auto px-6 py-4">
-            <div className="flex-row items-center justify-between gap-6">
+          <div className="max-w-5xl mx-auto px-6 py-2">
+            <div className="flex-row items-center justify-between">
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -236,10 +241,9 @@ export function BillDetails(props: BillDetails) {
                 className="p-2 h-auto"
               >
                 <ArrowLeft className="h-10 w-10"/>
-                <span className="sr-only">Back</span>
               </Button>
-              <div className='mb-2'>
-                <Badge className='mb-2 text-sm'>{policy}</Badge>
+              <div className='mb-0'>
+                {policy && <Badge className='mb-2 text-sm'>{policy}</Badge>}
                 <h1 className="text-md font-semibold">{title}</h1>
                 <p className="text-sm text-gray-600 mt-1">
                   {originChamberCode} {billNumber} - {originChamber} {latestAction}
@@ -288,7 +292,7 @@ export function BillDetails(props: BillDetails) {
         </div>
 
         {/* Chat Input Form */}
-        <div className="sticky bottom-14 mt-14 bg-white border-t shadow-md">
+        <div className={`sticky ${isMobile ? 'bottom-14' : 'bottom-0'} mt-14 bg-white border-t shadow-md`}>
           <div className="w-full px-4 py-4 md:px-6">
             <div className="mx-auto flex flex-1 gap-4 text-base md:gap-6 md:max-w-5xl">
               <form onSubmit={handleSubmit} className="relative flex h-full max-w-full flex-1 flex-col w-full">
@@ -302,7 +306,7 @@ export function BillDetails(props: BillDetails) {
                             value={input}
                             onChange={handleInputChange}
                             placeholder="Ask about this bill..."
-                            className="block w-full resize-none border-0 bg-transparent px-0 py-2 text-black placeholder:text-gray-500 focus:ring-0 focus-visible:ring-0 text-base"
+                            className="block w-full resize-none border-none bg-transparent px-0 py-2 text-black placeholder:text-gray-500 text-base"
                             style={{height: '52px', overflowY: 'hidden'}}
                           />
                         </div>

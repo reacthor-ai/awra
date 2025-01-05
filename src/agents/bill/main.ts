@@ -3,30 +3,26 @@ import { BillAnalysisState } from "@/agents/bill/state";
 import { billAnalystAgent } from "@/agents/bill/agents/bill-analyst";
 import { billCostEstimateAgent } from "@/agents/bill/agents/bill-cost-estimate";
 import { type CheckpointerConfig, createCheckpointer } from "./checkpointer/main";
-
-async function isCostEstimateUrlValid(url: string) {
-  const response = await fetch(url);
-  return response.ok;
-}
-
-async function shouldRunCostEstimate(state: typeof BillAnalysisState.State) {
-  if (state.analysisState.costEstimate?.url && !state.analysisState.costEstimate?.summary) {
-    const isUrlValid = await isCostEstimateUrlValid(state.analysisState.costEstimate.url);
-    if (isUrlValid) {
-      return "cost_estimate";
-    }
-  }
-  return END;
-}
+import { shouldRunCostEstimate, shouldProceedWithAnalysis } from "@/agents/bill/conditions";
+import { billSafetyAgent } from "@/agents/bill/agents/safety-agent/main";
 
 export async function createBillAnalysisWorkflow(config: CheckpointerConfig) {
   const checkpointer = await createCheckpointer(config);
 
   const workflow = new StateGraph(BillAnalysisState)
+    .addNode("safety_check", billSafetyAgent)
     .addNode("bill_analyst", billAnalystAgent)
     .addNode("cost_estimate", billCostEstimateAgent)
 
-    .addEdge(START, "bill_analyst")
+    .addEdge(START, "safety_check")
+    .addConditionalEdges(
+      "safety_check",
+      shouldProceedWithAnalysis,
+      {
+        bill_analyst: "bill_analyst",
+        [END]: END
+      }
+    )
     .addConditionalEdges(
       "bill_analyst",
       shouldRunCostEstimate,

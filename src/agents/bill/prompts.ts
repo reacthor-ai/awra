@@ -1,7 +1,27 @@
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { VoiceType } from "@/types/ai";
 
-// Main Bill Analysis Prompt
+export const ERROR_HANDLING_PROMPT = ChatPromptTemplate.fromMessages([
+  ["system", `You are a helpful assistant explaining why certain questions cannot be processed.
+Your task is to provide clear, professional explanations for why a question was deemed inappropriate or out of scope.
+
+Guidelines:
+- Maintain a professional and respectful tone
+- Explain the boundaries of the system
+- Suggest alternative approaches when possible
+- Keep responses concise and clear
+
+Current time: {current_time}`],
+  new MessagesPlaceholder("chat_history"),
+  ["human", `The following question could not be processed:
+
+User's question: {user_query}
+
+Error reason: {error}
+
+Please provide a clear explanation to the user.`]
+]);
+
 export const MAIN_BILL_PROMPT = ChatPromptTemplate.fromMessages([
   ["system", `You are a legislative analysis expert focused on understanding and explaining bills.
 Your task is to analyze the provided bill content and extract key information.
@@ -145,10 +165,20 @@ export type BillPromptParams = {
   cost_info: string | null | undefined
   user_query: any
   voiceType: VoiceType
+  error?: string | null;
 }
 
 export const billChatPrompt = async (params: BillPromptParams) => {
-  const {voiceType, bill_analysis, cost_info, user_query, chat_history, current_time,} = params
+  const {error, voiceType, bill_analysis, cost_info, user_query, chat_history, current_time,} = params
+
+  if (error) {
+    return await ERROR_HANDLING_PROMPT.formatMessages({
+      current_time: new Date().toISOString(),
+      chat_history,
+      user_query,
+      error
+    });
+  }
 
   if (voiceType === 'uncleSam') {
     return await BILL_CHAT_PROMPT.formatMessages({

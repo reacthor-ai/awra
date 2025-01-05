@@ -1,6 +1,5 @@
 'use client'
 
-import MainNavigation from "@/libs/navigation/main";
 import { BillGrid } from "@/libs/feed/bills/main";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -68,8 +67,8 @@ export function BillsFeed({state}: BillsFeedProps) {
   return (
     <>
       <div className='flex overflow-hidden items-center justify-between sticky top-0 bg-background z-20'>
-      <div>
-          <h1 className="text-2xl font-semibold p-4">Discover</h1>
+        <div>
+          <h1 className="text-2xl font-semibold p-4">List of Bills</h1>
         </div>
         <div>
           <Popover>

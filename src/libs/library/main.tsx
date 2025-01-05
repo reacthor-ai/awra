@@ -20,7 +20,7 @@ export function Library({chatList, stateId}: LibraryProps) {
         <div className="mx-auto flex w-full flex-1 flex-col gap-4 px-4 pb-4" style={{maxWidth: '1360px'}}>
           <div className="flex h-full w-full flex-col">
             <div className="flex flex-col items-stretch gap-4">
-              {chatList.map((chat, key) => {
+              {chatList.length <= 0 ? <p>Nothing yet!</p> : chatList.map((chat, key) => {
                 return (
                   <div key={chat.id} className={`${key + 1 === chatList.length ? 'mb-14' : 'mb-2'}`}>
                     <ChatItem stateId={stateId} chat={chat}/>

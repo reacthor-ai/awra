@@ -13,7 +13,7 @@ interface MainNavigationProps {
 export default function MainNavigation({title, children}: MainNavigationProps) {
   const isMobile = useIsMobile();
   if (!isMobile) {
-    return <DashboardProvider title={title}>{children}</DashboardProvider>;
+    return <DashboardProvider title={title ?? ''}>{children}</DashboardProvider>;
   }
 
   return (

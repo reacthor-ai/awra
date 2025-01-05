@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { navigationLinks } from "@/utils/nav-links";
@@ -29,26 +29,27 @@ const StateSelection = ({states}: StateSelectionPageProps) => {
   };
 
   return (
-    <div className="bg-gray-50 pl-5 pr-5 flex-row items-center justify-center min-h-screen p-4">
-      <Card className="mt-5 w-full max-w-md text-center">
+    <div className="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md text-center">
         <div className="w-full pt-5 flex justify-center mb-4">
           <Image
             src="https://diplomacy.state.gov/wp-content/uploads/2022/10/Panel11front_850_1-600x600-1.jpeg"
-            alt="US Representatives"
+            alt="Legislative Guide"
             width={200}
             height={200}
             className="rounded-lg"
           />
         </div>
         <p className="text-xs pt-5 text-gray-500 px-4 text-center mb-4">
-          Disclaimer: This website is not affiliated with the government. Output by the model may be inaccurate.
+          Disclaimer: This is an AI-powered tool to help understand legislation. Information provided should be verified
+          with official sources.
         </p>
         <CardHeader>
           <div className="flex justify-center items-center gap-2 mb-2">
-            <CardTitle className="text-2xl text-center">Find Your Representatives</CardTitle>
+            <CardTitle className="text-2xl text-center">AI Bill Assistant</CardTitle>
           </div>
           <CardDescription>
-            Select your state to discover local representatives and legislation that affects you
+            Select your state to explore and understand bills that could impact your community
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -67,15 +68,18 @@ const StateSelection = ({states}: StateSelectionPageProps) => {
             </Select>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col gap-4">
           <Button
             className="w-full"
             size="lg"
             onClick={handleContinue}
             disabled={!selectedStateAbbreviation}
           >
-            Continue
+            Explore Bills
           </Button>
+          <p className="text-sm text-gray-500">
+            Disclaimer: This website is not affiliated with the government. Output by the model may be inaccurate.
+          </p>
         </CardFooter>
       </Card>
     </div>

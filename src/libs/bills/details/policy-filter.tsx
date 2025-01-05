@@ -21,7 +21,7 @@ export function PolicyFilter({ policies, selectedPolicy, onSelectPolicy }: Polic
   }, [selectedPolicy]);
 
   return (
-    <div className="w-full bg-background">
+    <div className="w-full bg-background whitespace-nowrap">
       <ScrollArea className="w-full" ref={scrollAreaRef}>
         <div className="flex space-x-2 p-2 w-max">
           <Button

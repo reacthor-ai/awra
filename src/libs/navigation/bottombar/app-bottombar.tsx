@@ -1,21 +1,9 @@
 'use client'
 
-import { CompassIcon, SettingsIcon, Users } from 'lucide-react'
 import { createElement, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { navigationLinks } from "@/utils/nav-links";
-
-type NavItems = {
-  label: string
-  id: 'discover' | 'library' | 'settings'
-  icon: typeof Users
-}
-
-const navItems: NavItems[] = [
-  {id: 'discover', label: 'Discover', icon: CompassIcon},
-  {id: 'library', label: 'Library', icon: Users},
-  {id: 'settings', label: 'Settings', icon: SettingsIcon},
-]
+import { navItems } from "@/libs/navigation/nav-items";
 
 export const BottomNav = ({title}: { title: string }) => {
   const [active, setActive] = useState(title.toLowerCase())

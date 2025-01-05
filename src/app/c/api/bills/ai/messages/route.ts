@@ -30,7 +30,6 @@ export async function GET(req: Request) {
 
     const state = await graph.getState(config);
     const messages = state.values.messages || [];
-
     const filteredMessages = messages.filter((message: any) => !(message instanceof AIMessageChunk))
       .map((message: AIMessage | HumanMessage) => ({
         content: message.content,

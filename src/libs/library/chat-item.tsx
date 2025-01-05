@@ -13,6 +13,7 @@ import Link from 'next/link'
 import type { ChatAwraUserExtend } from "@/lib/prisma"
 import { navigationLinks } from "@/utils/nav-links";
 import { BillType } from "@/types/bill-details";
+import { getBillNumber } from "@/utils/getBillNumber";
 
 interface ChatItemProps {
   chat: ChatAwraUserExtend
@@ -31,11 +32,13 @@ export function ChatItem({chat, stateId}: ChatItemProps) {
   const metadata = chat.metadata as { billType: BillType, congress: string } ?? {}
   const congress = "congress" in metadata ? metadata.congress : ""
   const billType = "billType" in metadata ? metadata.billType.toUpperCase() : ""
+  const billNumber = getBillNumber(chat.roomId)
+
   return (
     <div className="group border relative flex min-h-[116px] flex-col rounded-lg">
       <Link
         href={navigationLinks.billDetails({
-          billNumber: chat.roomId,
+          billNumber,
           stateId,
           congress,
           billType

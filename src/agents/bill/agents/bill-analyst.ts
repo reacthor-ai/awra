@@ -167,10 +167,11 @@ export async function billAnalystAgent(state: typeof BillAnalysisState.State) {
           content: result.documents,
           summary: analysis.content
         },
+        finalSummary: analysis.content,
         status: 'analyzing_main'
       },
       messages: [...state.messages, analysis]
-    };
+    } as typeof BillAnalysisState.State;
   } catch (error: any) {
     console.error("Error in bill analyst agent:", error);
     return {

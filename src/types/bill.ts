@@ -3,6 +3,7 @@ export interface Bill {
   latestAction: {
     actionDate: string;
     text: string;
+    actionTime: string
   };
   number: string;
   originChamber: string;
