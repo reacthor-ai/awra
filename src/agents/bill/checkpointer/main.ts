@@ -9,9 +9,9 @@ export type CheckpointerConfig = {
 export async function createCheckpointer(config: CheckpointerConfig) {
   try {
     const isDev = process.env.NODE_ENV === 'development'
-    const cert = process.env.CA_CERTIFICATE;
 
     if (isDev) {
+      const cert = process.env.CA_CERTIFICATE;
       const pool = new Pool({
         connectionString: config.postgresUrl,
         ssl: cert ? {
@@ -35,7 +35,17 @@ export async function createCheckpointer(config: CheckpointerConfig) {
       return checkpointer;
     }
 
-    const checkpointer = PostgresSaver.fromConnString(config.postgresUrl);
+    const pool = new Pool({
+      connectionString: config.postgresUrl,
+      ssl: {
+        rejectUnauthorized: false, // Required for DigitalOcean's self-signed cert
+      },
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
+
+    const checkpointer = new PostgresSaver(pool);
     await checkpointer.setup();
 
     return checkpointer;
