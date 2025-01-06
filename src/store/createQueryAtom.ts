@@ -36,11 +36,11 @@ export const createQueryAtom = <T, E, QueryError>(
 
         try {
           const response = await fetch(url, {
-            next: {revalidate: 3600},
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
-            }
+            },
+            cache: 'no-store'
           })
 
           const result = await response.json()

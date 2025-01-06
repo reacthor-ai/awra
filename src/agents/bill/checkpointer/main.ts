@@ -16,7 +16,16 @@ export async function createCheckpointer(config: CheckpointerConfig) {
         ca: cert
       } : {
         rejectUnauthorized: true
-      }
+      },
+      // Add connection pool settings
+      max: 20, // maximum number of clients in the pool
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
+
+    // Add error handler for the pool
+    pool.on('error', (err, client) => {
+      console.error('Unexpected error on idle client', err);
     });
 
     const checkpointer = new PostgresSaver(pool);

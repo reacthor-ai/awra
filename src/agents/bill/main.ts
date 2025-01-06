@@ -6,8 +6,11 @@ import { type CheckpointerConfig, createCheckpointer } from "./checkpointer/main
 import { shouldRunCostEstimate, shouldProceedWithAnalysis } from "@/agents/bill/conditions";
 import { billSafetyAgent } from "@/agents/bill/agents/safety-agent/main";
 
-export async function createBillAnalysisWorkflow(config: CheckpointerConfig) {
-  const checkpointer = await createCheckpointer(config);
+export async function createBillAnalysisWorkflow(config?: CheckpointerConfig) {
+  const checkpointer = await createCheckpointer({
+    loggedIn: false,
+    postgresUrl: process.env.PUBLIC_POSTGRES_URL!
+  });
 
   const workflow = new StateGraph(BillAnalysisState)
     .addNode("safety_check", billSafetyAgent)

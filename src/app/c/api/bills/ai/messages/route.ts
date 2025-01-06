@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
     const loggedIn = searchParams.get("loggedIn") as unknown as boolean
     const userId = searchParams.get("userId") as string
-    const {graph, checkpointer} = await billAgent({
+    const {graph} = await billAgent({
       userConfig: {
         loggedIn,
         postgresUrl: loggedIn ? PRIVATE_POSTGRES_URL : PUBLIC_POSTGRES_URL,

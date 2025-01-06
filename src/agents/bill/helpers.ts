@@ -1,3 +1,5 @@
+import { createBillAnalysisWorkflow } from "@/agents/bill/main";
+
 export function splitIntoChunks(text: string, chunkSize = 1000): string[] {
   const chunks = [];
   let currentChunk = "";
@@ -14,4 +16,15 @@ export function splitIntoChunks(text: string, chunkSize = 1000): string[] {
   if (currentChunk) chunks.push(currentChunk);
 
   return chunks;
+}
+
+export const getAgentStateBySessionId = async (sessionId: string) => {
+  const workflow = await createBillAnalysisWorkflow()
+  const workflowState = await workflow.graph.getState({
+    configurable: {
+      thread_id: sessionId,
+    }
+  })
+
+  return workflowState.values
 }

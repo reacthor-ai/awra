@@ -12,25 +12,23 @@ import { Input } from "@/components/ui/input"
 
 type DateTimePickerWithRangeProps = {
   date: DateRange | undefined;
-  setDate: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
+  setDate: (date: DateRange | undefined) => void;  // Changed to callback function
   fromTime: string;
-  setFromTime: React.Dispatch<React.SetStateAction<string>>;
+  setFromTime: (time: string) => void;  // Changed to callback function
   toTime: string;
-  setToTime: React.Dispatch<React.SetStateAction<string>>;
-  className: string
+  setToTime: (time: string) => void;  // Changed to callback function
+  className?: string;
 };
 
-export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
-  const {
-    className = '',
-    date,
-    setDate,
-    fromTime,
-    setFromTime,
-    toTime,
-    setToTime,
-  } = props
-
+export function DateTimePickerWithRange({
+                                          className = '',
+                                          date,
+                                          setDate,
+                                          fromTime,
+                                          setFromTime,
+                                          toTime,
+                                          setToTime,
+                                        }: DateTimePickerWithRangeProps) {
   const formatDateTime = (date: Date | undefined, time: string) => {
     if (!date) return ""
     const [hours, minutes] = time.split(":")
@@ -40,10 +38,22 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
   }
 
   const today = new Date()
-  const disabledDays = {after: today}
+  const disabledDays = { after: today }
 
   const fromDateTime = formatDateTime(date?.from, fromTime)
   const toDateTime = formatDateTime(date?.to, toTime)
+
+  const handleFromTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFromTime(e.target.value);
+  };
+
+  const handleToTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setToTime(e.target.value);
+  };
+
+  const handleDateSelect = (newDate: DateRange | undefined) => {
+    setDate(newDate);
+  };
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -77,7 +87,7 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={setDate}
+            onSelect={handleDateSelect}
             numberOfMonths={1}
             disabled={disabledDays}
             fromDate={addDays(today, -365)}
@@ -90,7 +100,7 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
                   id="fromTime"
                   type="time"
                   value={fromTime}
-                  onChange={(e) => setFromTime(e.target.value)}
+                  onChange={handleFromTimeChange}
                   className="h-8"
                 />
               </div>
@@ -100,7 +110,7 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
                   id="toTime"
                   type="time"
                   value={toTime}
-                  onChange={(e) => setToTime(e.target.value)}
+                  onChange={handleToTimeChange}
                   className="h-8"
                 />
               </div>

@@ -9,11 +9,9 @@ import { Message, useChat } from 'ai/react'
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ReactMarkdown from 'react-markdown';
-import { useGetAIMessages } from "@/store/ai/messages";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { USALoadingIndicator } from "@/libs/bills/details/bill-details-loading";
-import BillDetailsSkeleton from "@/app/c/[state]/bill/[billNumber]/loading";
 import { VoiceType } from "@/types/ai";
 import { VoiceToggle } from "@/libs/bills/details/voice-toggle";
 import { useRouter } from "next/navigation";
@@ -144,6 +142,7 @@ type BillDetails = {
   cboUrl: string | null
   sessionId: string
   guestId: string
+  internalMessages: any
 }
 
 export function BillDetails(props: BillDetails) {
@@ -157,6 +156,7 @@ export function BillDetails(props: BillDetails) {
     cboUrl,
     sessionId,
     guestId,
+    internalMessages,
     url: billUrl
   } = props
   const [messageLoader, setMessagesLoader] = useState(true)
@@ -189,10 +189,9 @@ export function BillDetails(props: BillDetails) {
     },
   });
 
-  const {messages: internalMessages, isLoadingAIMessages, refetchAIMessages} = useGetAIMessages(sessionId, false)
-
   const syncMessages = useCallback(() => {
     if (!isLoading && (internalMessages && internalMessages?.length > 0)) {
+      console.log({aiChatMessages, internalMessages})
       if (aiChatMessages.length > internalMessages.length) {
         setMessages([...aiChatMessages]);
         setMessagesLoader(false)
@@ -202,7 +201,7 @@ export function BillDetails(props: BillDetails) {
       }
     }
     setMessagesLoader(false)
-  }, [isLoading, internalMessages, aiChatMessages, setMessages]);
+  }, [isLoading, internalMessages, aiChatMessages, setMessages, billUrl, sessionId]);
 
   const handleVoiceToggle = useCallback((newVoice: VoiceType) => {
     setVoice(newVoice);
@@ -223,7 +222,6 @@ export function BillDetails(props: BillDetails) {
   }, [messages]);
 
   if (!isClient) return null
-  if (isLoadingAIMessages) return <BillDetailsSkeleton/>
 
   return (
     <div className="min-h-screen bg-gray-50">

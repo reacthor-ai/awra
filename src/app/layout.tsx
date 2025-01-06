@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ProviderInitializer } from "@/provider/ProviderInitializer";
 import { AuthProvider } from "@/provider/AuthProvider";
+import NextTopLoader from 'nextjs-toploader';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Public House Gov",
+  title: "awra",
 };
 
 export default function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
@@ -24,6 +25,20 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+    <NextTopLoader
+      color="hsl(229 100% 62%)"
+      initialPosition={0.08}
+      crawlSpeed={200}
+      height={4}
+      crawl={true}
+      showSpinner={false}
+      easing="ease"
+      speed={200}
+      shadow="0 0 0px hsl(229 100% 62%),0 0 0px hsl(229 100% 62%)"
+      template='<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
+      zIndex={1600}
+      showAtBottom={false}
+    />
     <ProviderInitializer>
       <AuthProvider>
         {children}

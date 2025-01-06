@@ -44,6 +44,7 @@
     "lucide-react": "^0.469.0",
     "next": "15.1.2",
     "next-auth": "^4.24.11",
+    "nextjs-toploader": "^3.7.15",
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.1",
     "playwright": "^1.49.1",

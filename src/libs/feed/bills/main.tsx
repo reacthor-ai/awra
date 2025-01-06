@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { CalendarIcon, ClockIcon } from 'lucide-react';
 import { BillShowcase } from "./bills-showcase";
+import { transformRoomId } from "@/utils/transformRoomId";
 
 export function BillGrid({bills, state}: { bills: Bill[], state: string }) {
   const router = useRouter();
 
   return (
     <div key={'bills-id'} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-8 gap-6 mb-20">
-      {bills.map((bill) => (
-        <Card key={`${bill.type}:${bill.number}`}
+      {bills?.map((bill) => (
+        <Card key={transformRoomId(bill.type, bill.number)}
               className="flex flex-col h-full overflow-hidden transition-all duration-300 mx-5 hover:shadow-lg">
           <div className="flex-none">
             <BillShowcase

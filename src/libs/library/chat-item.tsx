@@ -79,29 +79,6 @@ export function ChatItem({chat, stateId}: ChatItemProps) {
             Updated {formatDistanceToNow(chat.updatedAt, {addSuffix: true})}
           </span>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative z-20 size-7 shrink-0 rounded-md p-0 opacity-0 group-hover:opacity-100 text-gray-900"
-              >
-                <MoreVertical className="h-4 w-4"/>
-                <span className="sr-only">Open chat actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]">
-              <DropdownMenuItem onClick={(e) => {
-                e.preventDefault()
-                navigator.clipboard.writeText(window.location.origin + `/bills/${chat.roomId}/chat/${chat.id}`)
-              }}>
-                Copy Link
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </div>
     </div>
   )

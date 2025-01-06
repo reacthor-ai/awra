@@ -1,68 +1,98 @@
 'use client'
 
-import { BillGrid } from "@/libs/feed/bills/main";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { SlidersIcon } from "lucide-react";
 import { DateTimePickerWithRange } from "@/libs/navigation/bottombar/data-picker";
 import { Separator } from "@/components/ui/separator";
 import LimitSelector from "@/libs/navigation/bottombar/popover-slider";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
-import { useGetBills } from "@/store/bills/get";
-import { BillGridSkeleton } from "@/libs/feed/bills/bills-skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { PolicyFilter } from "@/libs/bills/details/policy-filter";
+import { BillsResponse } from "@/types/bill";
+import { useRouter, useSearchParams } from "next/navigation";
+import { navigationLinks } from "@/utils/nav-links";
+import { BillGrid } from "@/libs/feed/bills/main";
 
 type BillsFeedProps = {
   state: string
+  initialBills: BillsResponse
 }
 
-export function BillsFeed({state}: BillsFeedProps) {
-  const [limit, setLimit] = useState("1-25");
-  const today = new Date()
-  const firstOfMonth = startOfMonth(today)
-  const endDate = today > endOfMonth(firstOfMonth) ? today : endOfMonth(firstOfMonth)
+export function BillsFeed({state, initialBills}: BillsFeedProps) {
+  const router = useRouter();
+  const params = useSearchParams();
 
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: firstOfMonth,
-    to: endDate,
-  })
-  const [fromTime, setFromTime] = useState("00:00")
-  const [toTime, setToTime] = useState("23:59")
-  const [sort, setSort] = useState<'updateDate+asc' | 'updateDate+desc'>('updateDate+desc');
-  const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
-  const {data, isLoadingBills, error, fetchBills} = useGetBills();
+  const today = new Date();
+  const firstOfMonth = startOfMonth(today);
+  const endDate = today > endOfMonth(firstOfMonth) ? today : endOfMonth(firstOfMonth);
 
-  const fetchBillsWithParams = useCallback(() => {
-    const [limitStart, limitEnd] = limit.split('-').map(Number);
-    const params = {
-      offset: limitStart - 1,
-      limit: limitEnd - limitStart + 1,
-      fromDateTime: date?.from ? `${date.from.toISOString().split('T')[0]}T${fromTime}:00Z` : undefined,
-      toDateTime: date?.to ? `${date.to.toISOString().split('T')[0]}T${toTime}:00Z` : undefined,
-      sort,
-      state,
-    };
-    fetchBills(params);
-  }, [state, limit, date, fromTime, toTime, fetchBills, sort]);
+  const [limit, setLimit] = useState(params.get('limit') || "1-25");
+  const [date, setDate] = useState<DateRange | undefined>(() => ({
+    from: params.get('fromDateTime') ? new Date(params.get('fromDateTime')!) : firstOfMonth,
+    to: params.get('toDateTime') ? new Date(params.get('toDateTime')!) : endDate,
+  }));
+  const [fromTime, setFromTime] = useState(params.get('fromTime') || "00:00");
+  const [toTime, setToTime] = useState(params.get('toTime') || "23:59");
+  const [sort, setSort] = useState<'updateDate+asc' | 'updateDate+desc'>(
+    (params.get('sort') as 'updateDate+asc' | 'updateDate+desc') || 'updateDate+desc'
+  );
+  const [selectedPolicy, setSelectedPolicy] = useState<string | null>(params.get('policy'));
 
-  useEffect(() => {
-    fetchBillsWithParams();
-  }, [fetchBillsWithParams]);
+  const updateSearchParams = useCallback((updates: Record<string, string>) => {
+    const newSearchParams = new URLSearchParams(params.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        newSearchParams.set(key, value);
+      } else {
+        newSearchParams.delete(key);
+      }
+    });
+    router.push(`${navigationLinks.content({stateId: state})}?${newSearchParams.toString()}`);
+  }, [router, state, params]);
 
   const policies = useMemo(() => {
-    if (!data) return [];
-    const policySet = new Set(data.map(bill => bill.policyName).filter(Boolean));
+    if (!initialBills) return [];
+    const policySet = new Set(initialBills.bills?.map(bill => bill.policyArea?.name).filter(Boolean));
     return Array.from(policySet);
-  }, [data]);
+  }, [initialBills]);
 
   const filteredBills = useMemo(() => {
-    if (!data) return null;
-    if (!selectedPolicy) return data;
-    return data.filter(bill => bill.policyName === selectedPolicy);
-  }, [data, selectedPolicy]);
+    if (!initialBills?.bills) return null;
+    if (!selectedPolicy) return initialBills.bills;
+    return initialBills.bills?.filter(bill => bill.policyArea?.name === selectedPolicy);
+  }, [initialBills, selectedPolicy]);
+
+  const handleDateChange = (newDate: DateRange | undefined) => {
+    setDate(newDate);
+    if (newDate?.from && newDate?.to) {
+      updateSearchParams({
+        fromDateTime: newDate.from.toISOString().split('T')[0],
+        toDateTime: newDate.to.toISOString().split('T')[0]
+      });
+    }
+  };
+
+  const handleTimeChange = (newFromTime: string, newToTime: string) => {
+    setFromTime(newFromTime);
+    setToTime(newToTime);
+    updateSearchParams({
+      fromTime: newFromTime,
+      toTime: newToTime
+    });
+  };
+
+  const handleSortChange = (value: 'updateDate+asc' | 'updateDate+desc') => {
+    setSort(value);
+    updateSearchParams({ sort: value });
+  };
+
+  const handlePolicyChange = (policy: string | null) => {
+    setSelectedPolicy(policy);
+    updateSearchParams({ policy: policy || '' });
+  };
 
   return (
     <>
@@ -85,15 +115,18 @@ export function BillsFeed({state}: BillsFeedProps) {
                     date={date}
                     fromTime={fromTime}
                     toTime={toTime}
-                    setDate={setDate}
-                    setFromTime={setFromTime}
-                    setToTime={setToTime}
+                    setDate={handleDateChange}
+                    setFromTime={(newFromTime) => handleTimeChange(newFromTime, toTime)}
+                    setToTime={(newToTime) => handleTimeChange(fromTime, newToTime)}
                     className=''
                   />
                 </div>
                 <div>
                   <h4 className="font-medium mb-2">Sort Order</h4>
-                  <Select value={sort} onValueChange={(value: 'updateDate+asc' | 'updateDate+desc') => setSort(value)}>
+                  <Select
+                    value={sort}
+                    onValueChange={handleSortChange}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select sort order"/>
                     </SelectTrigger>
@@ -103,7 +136,13 @@ export function BillsFeed({state}: BillsFeedProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                <LimitSelector limit={limit} setLimit={setLimit}/>
+                <LimitSelector
+                  limit={limit}
+                  setLimit={(newLimit) => {
+                    setLimit(newLimit);
+                    updateSearchParams({limit: newLimit});
+                  }}
+                />
               </div>
             </PopoverContent>
           </Popover>
@@ -113,16 +152,10 @@ export function BillsFeed({state}: BillsFeedProps) {
       <PolicyFilter
         policies={policies}
         selectedPolicy={selectedPolicy}
-        onSelectPolicy={setSelectedPolicy}
+        onSelectPolicy={handlePolicyChange}
       />
       <div className="flex-1 overflow-y-auto">
-        {isLoadingBills ? (
-          <BillGridSkeleton/>
-        ) : error ? (
-          <p>Error: {error.message}</p>
-        ) : filteredBills ? (
-          <BillGrid bills={filteredBills} state={state}/>
-        ) : null}
+        {filteredBills && <BillGrid bills={filteredBills} state={state} />}
       </div>
     </>
   );
