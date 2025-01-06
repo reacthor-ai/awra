@@ -191,7 +191,6 @@ export function BillDetails(props: BillDetails) {
 
   const syncMessages = useCallback(() => {
     if (!isLoading && (internalMessages && internalMessages?.length > 0)) {
-      console.log({aiChatMessages, internalMessages})
       if (aiChatMessages.length > internalMessages.length) {
         setMessages([...aiChatMessages]);
         setMessagesLoader(false)

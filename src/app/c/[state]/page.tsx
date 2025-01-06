@@ -7,11 +7,11 @@ export default async function ContentPage(props: NextPageProps<{ state: string }
   const nextParams = await props.params;
   const searchParams = await props.searchParams;
 
-  const additionalBills = await getBillsWithPolicy(searchParams)
+  const billsWithPolicy = await getBillsWithPolicy(searchParams)
   return (
     <MainNavigation title='Discover'>
       <BillsFeed
-        initialBills={{bills: additionalBills}}
+        initialBills={{bills: billsWithPolicy}}
         state={nextParams.state}
       />
     </MainNavigation>
