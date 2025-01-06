@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { LangChainAdapter, StreamData } from 'ai';
 import { billAgent } from "@/agents/bill/main";
 import { chatAnthropic } from "@/agents/anthropic";
-import { BILL_CHAT_PROMPT, billChatPrompt, BillPromptParams } from "@/agents/bill/prompts";
+import { billChatPrompt, BillPromptParams } from "@/agents/bill/prompts";
 import { saveMessages } from "@/app/c/api/bills/ai/bill-agent/save-message";
 
 const PUBLIC_POSTGRES_URL = process.env.PUBLIC_POSTGRES_URL!;
