@@ -28,7 +28,7 @@ export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<
 
   try {
     // First, try to find an existing chat for this user and roomId
-    let existingChat = await prisma.chat.findFirst({
+    const existingChat = await prisma.chat.findFirst({
       where: {
         userId,
         roomId,

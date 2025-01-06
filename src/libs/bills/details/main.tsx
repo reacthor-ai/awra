@@ -200,11 +200,11 @@ export function BillDetails(props: BillDetails) {
       }
     }
     setMessagesLoader(false)
-  }, [isLoading, internalMessages, aiChatMessages, setMessages, billUrl, sessionId]);
+  }, [isLoading, internalMessages, aiChatMessages, setMessages]);
 
   const handleVoiceToggle = useCallback((newVoice: VoiceType) => {
     setVoice(newVoice);
-  }, []);
+  }, [setVoice]);
 
   useEffect(() => {
     syncMessages();

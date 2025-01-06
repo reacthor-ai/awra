@@ -6,6 +6,6 @@ export type NextPageProps<
     [key: string]: string | string[] | undefined
   }
 > = {
-  params: Params;
-  searchParams: SearchParams;
+  params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
 };

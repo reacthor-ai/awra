@@ -69,7 +69,8 @@ const config = {
     })
   ],
   callbacks: {
-    async signIn({user, account, profile}) {
+    async signIn({user: nextAuthUser, account, profile}) {
+      const user = nextAuthUser as AwraUser
       if (account?.provider === 'google') {
         if (!(profile as { email_verified: boolean })?.email_verified) {
           return false
@@ -82,13 +83,13 @@ const config = {
           }
         })
 
-        if (existingGuest) {
+        if (existingGuest && profile) {
           const updatedUser = await prisma.user.update({
             where: {id: existingGuest.id},
             data: {
               name: profile.name,
               email: profile.email,
-              image: profile.picture,
+              image: (profile as { picture: string }).picture,
               isGuest: false,
               emailVerified: new Date(),
               lastLoginAt: new Date()
@@ -105,7 +106,8 @@ const config = {
 
       return true
     },
-    async jwt({token, user, account, profile}) {
+    async jwt({token, user: nextAuthUser, account, profile}) {
+      const user = nextAuthUser as AwraUser
       if (user) {
         token.id = user.id
         token.isGuest = user.isGuest
@@ -118,7 +120,7 @@ const config = {
       if (account?.provider === 'google' && profile) {
         token.name = profile.name
         token.email = profile.email
-        token.picture = profile.picture
+        token.picture = (profile as { picture: string }).picture
         token.isGuest = false
       }
 
@@ -151,7 +153,7 @@ const config = {
             emailVerified: new Date(),
             lastLoginAt: new Date(),
             name: profile.name,
-            image: profile.picture,
+            image: (profile as {picture: string}).picture,
             email: profile.email,
             isGuest: false
           }
