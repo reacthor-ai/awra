@@ -1,6 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { PlaywrightWebBaseLoader } from "@langchain/community/document_loaders/web/playwright";
+import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 import { Document } from "@langchain/core/documents";
 import { BillAnalysisState } from "@/agents/bill/state";
 import { MAIN_BILL_PROMPT } from "@/agents/bill/prompts";
@@ -56,30 +56,8 @@ function preprocessQuery(query: string): string {
 const fetchAndEmbedBillTool = tool(
   async ({url, query}) => {
     try {
-      const loader = new PlaywrightWebBaseLoader(url, {
-        launchOptions: {
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu'
-          ],
-          headless: true,
-          executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined
-        },
-        gotoOptions: {
-          waitUntil: 'networkidle',
-          timeout: 30000
-        },
-        evaluate: async (page) => {
-          try {
-            await page.waitForSelector('pre', { timeout: 10000 });
-            return page.evaluate(() => document.querySelector('pre')?.textContent || '');
-          } catch (error) {
-            console.error('Error in page evaluation:', error);
-            throw error;
-          }
-        }
+      const loader = new CheerioWebBaseLoader(url, {
+        selector: "pre",
       });
 
       const docs = await loader.load();

@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx playwright install-deps chromium && npx playwright install chromium && next build && prisma generate",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
-    "prepare": "npx playwright install-deps chromium && npx playwright install chromium"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.6",
@@ -34,6 +33,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@tanstack/react-query": "^5.62.10",
     "ai": "^4.0.22",
+    "cheerio": "link:@langchain/community/document_loaders/web/cheerio",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cohere-ai": "^7.15.0",
