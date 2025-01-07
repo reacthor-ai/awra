@@ -33,7 +33,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@tanstack/react-query": "^5.62.10",
     "ai": "^4.0.22",
-    "cheerio": "link:@langchain/community/document_loaders/web/cheerio",
+    "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cohere-ai": "^7.15.0",
