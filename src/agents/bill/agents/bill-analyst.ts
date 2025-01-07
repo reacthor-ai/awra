@@ -58,15 +58,27 @@ const fetchAndEmbedBillTool = tool(
     try {
       const loader = new PlaywrightWebBaseLoader(url, {
         launchOptions: {
-          args: ['--no-sandbox'],
-          headless: true
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
+          ],
+          headless: true,
+          executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined
         },
         gotoOptions: {
-          waitUntil: 'networkidle'
+          waitUntil: 'networkidle',
+          timeout: 30000
         },
         evaluate: async (page) => {
-          await page.waitForSelector('pre', {timeout: 10000});
-          return page.evaluate(() => document.querySelector('pre')?.textContent || '');
+          try {
+            await page.waitForSelector('pre', { timeout: 10000 });
+            return page.evaluate(() => document.querySelector('pre')?.textContent || '');
+          } catch (error) {
+            console.error('Error in page evaluation:', error);
+            throw error;
+          }
         }
       });
 

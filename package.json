@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && prisma generate",
+    "build": "npx playwright install-deps chromium && npx playwright install chromium && next build && prisma generate",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prepare": "npx playwright install-deps chromium && npx playwright install chromium"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.6",
