@@ -12,10 +12,10 @@ interface MainNavigationProps {
 
 export default function MainNavigation({title, children}: MainNavigationProps) {
   const isMobile = useIsMobile();
+  console.log({isMobile})
   if (!isMobile) {
     return <DashboardProvider title={title ?? ''}>{children}</DashboardProvider>;
   }
-
   return (
     <>
       <div className="flex flex-col h-screen bg-background">

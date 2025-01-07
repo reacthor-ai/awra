@@ -13,7 +13,7 @@ export interface Bill {
   updateDate: string;
   updateDateIncludingText: string;
   url: string;
-  policyArea: { name: string }
+  policyName: string
 }
 
 export interface BillsResponse {

@@ -1,51 +1,55 @@
-import { Bill } from "@/types/bill";
-import { navigationLinks } from "@/utils/nav-links";
-import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { CalendarIcon, ClockIcon } from 'lucide-react';
-import { BillShowcase } from "./bills-showcase";
-import { transformRoomId } from "@/utils/transformRoomId";
+import { Bill } from "@/types/bill"
+import { navigationLinks } from "@/utils/nav-links"
+import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { CalendarIcon, ClockIcon } from 'lucide-react'
+import { BillShowcase } from "./bills-showcase"
+import { transformRoomId } from "@/utils/transformRoomId"
 
 export function BillGrid({bills, state}: { bills: Bill[], state: string }) {
-  const router = useRouter();
+  const router = useRouter()
 
   return (
-    <div key={'bills-id'} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-8 gap-6 mb-20">
-      {bills.map((bill) => (
-        <Card key={transformRoomId(bill.type, bill.number)}
-              className="flex flex-col h-full overflow-hidden transition-all duration-300 mx-5 hover:shadow-lg">
-          <div className="flex-none">
-            <BillShowcase
-              type={bill.type}
-              number={bill.number}
-              congress={bill.congress}
-              originChamber={bill.originChamber}
-            />
-          </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6 pb-20">
+    {bills.map((bill) => (
+        <Card
+          key={transformRoomId(bill.type, bill.number)}
+          className="flex flex-col overflow-hidden transition-all hover:shadow-lg"
+        >
+          <BillShowcase
+            type={bill.type}
+            number={bill.number}
+            congress={bill.congress}
+            originChamber={bill.originChamber}
+          />
 
-          <CardHeader className="space-y-2 flex-none">
-            <h3 className="text-lg font-semibold">{bill.title}</h3>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="flex items-center">
-                <ClockIcon className="mr-1 h-3 w-3"/>
-                Updated: {new Date(bill.updateDate).toLocaleDateString()}
+          <CardHeader className="space-y-1.5 pt-4 pb-3">
+            <h3 className="text-sm font-medium leading-tight line-clamp-2">
+              {bill.title}
+            </h3>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <ClockIcon className="h-3 w-3"/>
+                {new Date(bill.updateDate).toLocaleDateString()}
               </span>
-              <span className="flex items-center">
-                <CalendarIcon className="mr-1 h-3 w-3"/>
-                Action: {bill.latestAction.actionDate}
+              <span className="flex items-center gap-1">
+                <CalendarIcon className="h-3 w-3"/>
+                {bill.latestAction.actionDate}
               </span>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-2 flex-grow">
-            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-              Latest action: {bill.latestAction.text}
+          <CardContent className="pt-0">
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {bill.latestAction.text}
             </p>
           </CardContent>
 
-          <CardFooter className="flex-none">
+          <CardFooter className="pt-4">
             <Button
+              variant="secondary"
+              size="sm"
               onClick={() => router.push(
                 navigationLinks.billDetails({
                   billNumber: bill.number,
@@ -56,11 +60,12 @@ export function BillGrid({bills, state}: { bills: Bill[], state: string }) {
               )}
               className="w-full"
             >
-              View Bill Details
+              View Details
             </Button>
           </CardFooter>
         </Card>
       ))}
     </div>
-  );
+  )
 }
+

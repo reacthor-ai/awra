@@ -52,17 +52,16 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
     });
     router.push(`${navigationLinks.content({stateId: state})}?${newSearchParams.toString()}`);
   }, [router, state, params]);
-
   const policies = useMemo(() => {
     if (!initialBills) return [];
-    const policySet = new Set(initialBills.bills?.map(bill => bill.policyArea?.name).filter(Boolean));
+    const policySet = new Set(initialBills.bills?.map(bill => bill?.policyName).filter(Boolean));
     return Array.from(policySet);
   }, [initialBills]);
 
   const filteredBills = useMemo(() => {
     if (!initialBills?.bills) return null;
     if (!selectedPolicy) return initialBills.bills;
-    return initialBills.bills?.filter(bill => bill.policyArea?.name === selectedPolicy);
+    return initialBills.bills?.filter(bill => bill?.policyName === selectedPolicy);
   }, [initialBills, selectedPolicy]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
@@ -149,13 +148,15 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
         </div>
       </div>
       <Separator/>
-      <PolicyFilter
-        policies={policies}
-        selectedPolicy={selectedPolicy}
-        onSelectPolicy={handlePolicyChange}
-      />
-      <div className="flex-1 overflow-y-auto">
-        {filteredBills && <BillGrid bills={filteredBills} state={state} />}
+      <div className="flex flex-col h-full max-h-screen overflow-hidden">
+        <PolicyFilter
+          policies={policies}
+          selectedPolicy={selectedPolicy}
+          onSelectPolicy={handlePolicyChange}
+        />
+        <div className="flex-1 overflow-y-auto px-4">
+          {filteredBills && <BillGrid bills={filteredBills} state={state} />}
+        </div>
       </div>
     </>
   );

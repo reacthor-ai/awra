@@ -21,8 +21,8 @@ export function PolicyFilter({ policies, selectedPolicy, onSelectPolicy }: Polic
   }, [selectedPolicy]);
 
   return (
-    <div className="w-full bg-background whitespace-nowrap">
-      <ScrollArea className="w-full" ref={scrollAreaRef}>
+    <div className="w-full bg-background sticky top-0 z-10">
+      <ScrollArea className="w-full max-w-[100vw]" ref={scrollAreaRef}>
         <div className="flex space-x-2 p-2 w-max">
           <Button
             variant={selectedPolicy === null ? "default" : "outline"}
