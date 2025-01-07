@@ -3,7 +3,7 @@ import { getUserVoicePreference, updateUserVoicePreference } from '@/lib/guestDb
 import type { VoiceType } from '@/types/ai';
 
 export function useVoicePreference(guestId: string) {
-  const [voice, setVoice] = useState<VoiceType>('uncleSam');
+  const [voice, setVoice] = useState<VoiceType>('analyst');
 
   const loadVoicePreference = useCallback(async () => {
     if (!guestId) return;

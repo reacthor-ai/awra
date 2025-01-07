@@ -25,6 +25,10 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#ffffff" />
     <NextTopLoader
       color="hsl(229 100% 62%)"
       initialPosition={0.08}
