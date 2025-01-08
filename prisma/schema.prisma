@@ -42,6 +42,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  state         String?
   isGuest       Boolean   @default(false)
   guestId       String?   @unique
   createdAt     DateTime  @default(now())

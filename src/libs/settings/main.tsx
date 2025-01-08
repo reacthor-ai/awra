@@ -32,11 +32,11 @@ export function Settings({remainingChat, isGuest, name}: SettingsProps) {
               </p>
               <Button
                 className="w-full py-2 px-4 bg-white hover:bg-gray-50 text-gray-800 font-semibold border border-gray-300 rounded-lg shadow-sm flex items-center justify-center transition-colors duration-300 ease-in-out"
-                onClick={() => {
-                  return signIn('google')
-                    .then(async () => {
-                      await clearGuestData()
-                    })
+                onClick={async () => {
+                  await Promise.all([
+                    signIn('google'),
+                    clearGuestData()
+                  ])
                 }}
               >
                 Sign in with Google

@@ -13,7 +13,6 @@ import { navigationLinks } from "@/utils/nav-links";
 import { transformRoomId } from "@/utils/transformRoomId";
 import { transformMessages } from "@/utils/transformMessages";
 import { getAgentStateBySessionId } from "@/agents/bill/helpers";
-import prisma from "@/lib/prisma";
 
 export default async function BillDetailPage(props: NextPageProps<{ billNumber: string, state: string }>) {
   const nextParams = await props.params
