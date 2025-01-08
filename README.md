@@ -37,6 +37,7 @@ Legislative bills are notoriously complex and hard to understand. This complexit
 ## Roadmap
 - [ ] State-level bill analysis (agent)
 - [ ] Dark mode!
+- [ ] Updated News relevant to certain bills 
 - [ ] Federalregister
 - [ ] Committee hearing tracking
 

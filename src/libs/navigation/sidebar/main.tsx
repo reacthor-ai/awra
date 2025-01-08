@@ -12,11 +12,9 @@ export default function DashboardProvider({children, title}: DashboardProps) {
     <SidebarProvider>
       <div className="flex h-screen bg-background w-full">
         <AppSidebar title={title!}/>
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 overflow-auto">
-            <div>
-              {children}
-            </div>
+            {children}
           </div>
         </main>
       </div>

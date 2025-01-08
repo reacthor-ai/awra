@@ -44,18 +44,15 @@ export async function getBillsWithPolicy(
   const additionalBillsPromises = billsResponse.bills ? billsResponse.bills.map(async (billDetail) => {
     const url = new URL(billDetail.url);
     url.search = searchSpecificBillParams.toString();
-
     const resp = await fetch(url, {
       cache: 'force-cache',
     });
-
     const response: { bill: BillDetail } = await resp.json();
-
     return {
       ...billDetail,
-      policyName: response.bill.policyArea?.name ?? null
+      policyName: response.bill.policyArea?.name ?? null,
+      textVersionsExist: "textVersions" in response.bill && response.bill.textVersions.count >= 1,
     };
   }) : [];
-
   return await Promise.all(additionalBillsPromises);
 }

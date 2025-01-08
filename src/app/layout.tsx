@@ -49,7 +49,11 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
       <AuthProvider>
         {children}
       </AuthProvider>
-      <GoogleAnalytics gaId={process.env.GOOGLE_ID ?? ''}/>
+      {
+        process.env.NODE_ENV === 'production' && (
+          <GoogleAnalytics gaId={process.env.GOOGLE_ID ?? ''}/>
+        )
+      }
     </ProviderInitializer>
     </body>
     </html>
