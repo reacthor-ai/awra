@@ -4,6 +4,7 @@ import "./globals.css";
 import { ProviderInitializer } from "@/provider/ProviderInitializer";
 import { AuthProvider } from "@/provider/AuthProvider";
 import NextTopLoader from 'nextjs-toploader';
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +26,11 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="theme-color" content="#ffffff"/>
     <NextTopLoader
       color="hsl(229 100% 62%)"
       initialPosition={0.08}
@@ -47,6 +49,7 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
       <AuthProvider>
         {children}
       </AuthProvider>
+      <GoogleAnalytics gaId={process.env.GOOGLE_ID ?? ''}/>
     </ProviderInitializer>
     </body>
     </html>

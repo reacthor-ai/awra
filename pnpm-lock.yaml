@@ -35,6 +35,9 @@ importers:
       '@langchain/langgraph-checkpoint-postgres':
         specifier: ^0.0.2
         version: 0.0.2(@langchain/core@0.3.27(openai@4.77.3(zod@3.24.1)))(@langchain/langgraph-checkpoint@0.0.13(@langchain/core@0.3.27(openai@4.77.3(zod@3.24.1))))
+      '@next/third-parties':
+        specifier: ^15.1.4
+        version: 15.1.4(next@15.1.2(@opentelemetry/api@1.9.0)(@playwright/test@1.49.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)
       '@prisma/client':
         specifier: ^6.1.0
         version: 6.1.0(prisma@6.1.0)
@@ -98,6 +101,9 @@ importers:
       framer-motion:
         specifier: ^11.15.0
         version: 11.16.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      google:
+        specifier: link:@next/third-parties/google
+        version: link:@next/third-parties/google
       jotai:
         specifier: ^2.11.0
         version: 2.11.0(@types/react@19.0.3)(react@19.0.0)
@@ -1123,6 +1129,12 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
+
+  '@next/third-parties@15.1.4':
+    resolution: {integrity: sha512-x3HQ43zDt7HbtRzbbf+Yz61/KHXKIY3xdchKo0XahAUyc4AcBkHuOYxk7PDNkPTGA/vncyzdn0jy+Gi1ziceiA==}
+    peerDependencies:
+      next: ^13.0.0 || ^14.0.0 || ^15.0.0
+      react: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -4060,6 +4072,9 @@ packages:
   thenify@3.3.1:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==}
 
+  third-party-capital@1.0.20:
+    resolution: {integrity: sha512-oB7yIimd8SuGptespDAZnNkzIz+NWaJCu2RMsbs4Wmp9zSDUM8Nhi3s2OOcqYuv3mN4hitXc8DVx+LyUmbUDiA==}
+
   throttleit@2.1.0:
     resolution: {integrity: sha512-nt6AMGKW1p/70DF/hGBdJB57B8Tspmbp5gfJ8ilhLnt7kkr2ye7hzD6NVG8GGErk2HWF34igrL2CXmNIkzKqKw==}
     engines: {node: '>=18'}
@@ -5277,6 +5292,12 @@ snapshots:
 
   '@next/swc-win32-x64-msvc@15.1.2':
     optional: true
+
+  '@next/third-parties@15.1.4(next@15.1.2(@opentelemetry/api@1.9.0)(@playwright/test@1.49.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)':
+    dependencies:
+      next: 15.1.2(@opentelemetry/api@1.9.0)(@playwright/test@1.49.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react: 19.0.0
+      third-party-capital: 1.0.20
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -8749,6 +8770,8 @@ snapshots:
   thenify@3.3.1:
     dependencies:
       any-promise: 1.3.0
+
+  third-party-capital@1.0.20: {}
 
   throttleit@2.1.0: {}
 
