@@ -21,7 +21,7 @@ const config = {
           access_type: "offline",
           response_type: "code"
         }
-      }
+      },
     }),
     CredentialsProvider({
       id: "guest",
@@ -76,30 +76,36 @@ const config = {
           return false
         }
 
-        const existingGuest = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findFirst({
           where: {
-            isGuest: true,
-            email: user.email
+            OR: [
+              {email: user.email},
+              {isGuest: true, email: user.email}
+            ]
+          },
+          include: {
+            accounts: true
           }
-        })
+        });
 
-        if (existingGuest && profile) {
+        if (existingUser && profile) {
           const updatedUser = await prisma.user.update({
-            where: {id: existingGuest.id},
+            where: {id: existingUser.id},
             data: {
               name: profile.name,
-              email: profile.email,
               image: (profile as { picture: string }).picture,
               isGuest: false,
               emailVerified: new Date(),
-              lastLoginAt: new Date()
+              lastLoginAt: new Date(),
+              ...(existingUser.isGuest ? {email: profile.email} : {})
             }
           })
-
           user.name = updatedUser.name
           user.email = updatedUser.email
           user.image = updatedUser.image
           user.isGuest = updatedUser.isGuest
+          user.guestId = updatedUser.guestId
+          user.id = updatedUser.id
           return true
         }
       }
@@ -118,8 +124,11 @@ const config = {
       }
 
       if (account?.provider === 'google' && profile) {
+        token.id = user.id
+        token.isGuest = user.isGuest
         token.name = profile.name
         token.email = profile.email
+        token.guestId = user.guestId
         token.picture = (profile as { picture: string }).picture
         token.isGuest = false
       }
@@ -127,6 +136,24 @@ const config = {
       return token
     },
     async session({session, token}) {
+      const authenticatedUser = await prisma.user.findFirst({
+        where: {
+          email: token.email,
+          isGuest: false
+        },
+      })
+
+      if (authenticatedUser) {
+        return {
+          ...session,
+          user: {
+            ...authenticatedUser,
+            id: authenticatedUser.id,
+            guestId: authenticatedUser.guestId
+          }
+        }
+      }
+
       return {
         ...session,
         user: {
@@ -145,25 +172,75 @@ const config = {
     async signIn({user: nextAuthUser, account, profile}) {
       const user = nextAuthUser as AwraUser
 
-      // Handle Google sign in
       if (account?.provider === 'google' && profile) {
-        await prisma.user.update({
-          where: {id: user.id},
-          data: {
-            emailVerified: new Date(),
-            lastLoginAt: new Date(),
-            name: profile.name,
-            image: (profile as {picture: string}).picture,
-            email: profile.email,
-            isGuest: false
+        const existingUser = await prisma.user.findUnique({
+          where: {email: profile.email}
+        });
+
+        const existingGuest = await prisma.user.findFirst({
+          where: {
+            isGuest: true,
+            email: user.email
           }
-        })
+        });
+
+        if (existingGuest) {
+          if (existingUser && existingUser.id !== existingGuest.id) {
+            // If there's already a user with this email,
+            // we should merge the guest data with the existing user
+            // and delete the guest account
+            await prisma.$transaction(async (tx) => {
+              await tx.chat.updateMany({
+                where: {userId: existingGuest.id},
+                data: {userId: existingUser.id}
+              });
+
+              // Update the existing user
+              await tx.user.update({
+                where: {id: existingUser.id},
+                data: {
+                  name: profile.name,
+                  image: (profile as { picture: string }).picture,
+                  emailVerified: new Date(),
+                  lastLoginAt: new Date()
+                }
+              });
+            });
+          } else {
+            // If no existing user with this email, update the guest
+            await prisma.user.update({
+              where: {id: existingGuest.id},
+              data: {
+                name: profile.name,
+                email: profile.email,
+                image: (profile as { picture: string }).picture,
+                isGuest: false,
+                guestId: null,
+                emailVerified: new Date(),
+                lastLoginAt: new Date()
+              }
+            });
+          }
+        }
       } else {
-        // Update lastLoginAt for guest users
         await prisma.user.update({
           where: {id: user.id},
           data: {lastLoginAt: new Date()}
-        })
+        });
+      }
+    },
+    async signOut({token}) {
+      if (token.id) {
+        if (!token?.isGuest) {
+          await prisma.$transaction([
+            prisma.session.deleteMany({
+              where: {userId: token.id},
+            }),
+            prisma.account.deleteMany({
+              where: {userId: token.id},
+            }),
+          ]);
+        }
       }
     }
   }

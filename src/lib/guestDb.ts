@@ -26,11 +26,10 @@ export class GuestDB extends Dexie {
         preferences: 'userId, voice, updatedAt'
       })
       .upgrade(tx => {
-        // Add default preferences for existing users during upgrade
         return tx.table('guestUsers').toCollection().each(async user => {
           await tx.table('preferences').add({
             userId: user.id,
-            voice: 'uncleSam',
+            voice: 'analyst',
             updatedAt: new Date()
           });
         });
@@ -76,6 +75,14 @@ export async function updateUserVoicePreference(userId: string, voice: VoiceType
   });
 }
 
-export async function clearGuestUser(): Promise<void> {
-  await db.guestUsers.clear();
+export async function clearGuestData(): Promise<void> {
+  await Promise.all([
+    db.guestUsers.clear(),
+    db.preferences.clear()
+  ]);
+}
+
+export async function hasActiveGuest(): Promise<boolean> {
+  const guestUser = await db.guestUsers.toCollection().first();
+  return !!guestUser;
 }

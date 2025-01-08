@@ -1,27 +1,27 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-interface PolicyFilterProps {
+type PolicyFilterProps = {
   policies: string[];
   selectedPolicy: string | null;
   onSelectPolicy: (policy: string | null) => void;
 }
 
-export function PolicyFilter({ policies, selectedPolicy, onSelectPolicy }: PolicyFilterProps) {
+export function PolicyFilter({policies, selectedPolicy, onSelectPolicy}: PolicyFilterProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
       const selectedButton = scrollAreaRef.current.querySelector(`[data-selected="true"]`);
       if (selectedButton) {
-        selectedButton.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        selectedButton.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
       }
     }
   }, [selectedPolicy]);
 
   return (
-    <div className="w-full bg-background sticky top-0 z-10">
+    <div className="w-full bg-background">
       <ScrollArea className="w-full max-w-[100vw]" ref={scrollAreaRef}>
         <div className="flex space-x-2 p-2 w-max">
           <Button
@@ -44,7 +44,7 @@ export function PolicyFilter({ policies, selectedPolicy, onSelectPolicy }: Polic
             </Button>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="horizontal"/>
       </ScrollArea>
     </div>
   );

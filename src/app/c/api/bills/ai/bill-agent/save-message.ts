@@ -1,4 +1,3 @@
-// In save-message.ts
 import { Message as SDKMessage } from "ai";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 

@@ -11,7 +11,7 @@ export default async function LibraryPage(props: NextPageProps<{ state: string }
 
   const chatList = await prisma.chat.findMany({
     where: {
-      userId: (session!.user.id as string),
+      userId: session!.user.id as string,
     },
     select: {
       user: true,
@@ -24,8 +24,11 @@ export default async function LibraryPage(props: NextPageProps<{ state: string }
       userId: true,
       chatType: true,
       metadata: true
+    },
+    orderBy: {
+      updatedAt: 'desc'
     }
-  })
+  });
 
   return (
     <MainNavigation title='Library'>
