@@ -66,7 +66,6 @@ export async function getBills(
   const baseUrl = 'https://api.congress.gov/v3/bill';
   const searchParams = createSearchParams(params, apiKey);
   const url = `${baseUrl}?${searchParams.toString()}`;
-
   const response = await fetch(url, {
     headers: {
       'Accept': 'application/json'

@@ -85,19 +85,19 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
 
   const handleSortChange = (value: 'updateDate+asc' | 'updateDate+desc') => {
     setSort(value);
-    updateSearchParams({ sort: value });
+    updateSearchParams({sort: value});
   };
 
   const handlePolicyChange = (policy: string | null) => {
     setSelectedPolicy(policy);
-    updateSearchParams({ policy: policy || '' });
+    updateSearchParams({policy: policy || ''});
   };
 
   return (
-    <>
-      <div className='flex overflow-hidden items-center justify-between bg-background z-20'>
+    <div className="flex flex-col min-w-0">
+      <div className="flex items-center justify-between p-4">
         <div>
-          <h1 className="text-2xl font-semibold p-4">List of Bills</h1>
+          <h1 className="text-2xl font-semibold">List of Bills</h1>
         </div>
         <div>
           <Popover>
@@ -148,16 +148,22 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
         </div>
       </div>
       <Separator/>
-      <div className="flex flex-col h-full max-h-screen overflow-hidden">
+      {/* Policy Filter */}
+      <div className="sticky top-0 bg-background z-10 min-w-0"> {/* min-w-0 here too */}
         <PolicyFilter
           policies={policies}
           selectedPolicy={selectedPolicy}
           onSelectPolicy={handlePolicyChange}
+          state={state}
         />
-        <div className="flex-1 mb-10 overflow-y-auto px-4">
-          {filteredBills && <BillGrid bills={filteredBills} state={state} />}
+      </div>
+
+      {/* Bills Grid */}
+      <div className="flex-1 overflow-y-auto min-w-0"> {/* min-w-0 for grid container */}
+        <div className="p-4">
+          {filteredBills && <BillGrid bills={filteredBills} state={state}/>}
         </div>
       </div>
-    </>
-  );
+    </div>
+  )
 }

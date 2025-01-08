@@ -14,6 +14,7 @@ export interface Bill {
   updateDateIncludingText: string;
   url: string;
   policyName: string
+  textVersionsExist: boolean;
 }
 
 export interface BillsResponse {
