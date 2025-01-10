@@ -13,6 +13,7 @@ import { navigationLinks } from "@/utils/nav-links";
 import { transformRoomId } from "@/utils/transformRoomId";
 import { transformMessages } from "@/utils/transformMessages";
 import { getAgentStateBySessionId } from "@/agents/bill/helpers";
+import { getFormattedText } from "@/utils/getFormattedText";
 
 export default async function BillDetailPage(props: NextPageProps<{ billNumber: string, state: string }>) {
   const nextParams = await props.params
@@ -38,9 +39,7 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
     )
   ])
 
-  const textFormat = billByText.textVersions[0] ? billByText.textVersions[0]?.formats?.find(
-    (format) => format.type === 'Formatted Text'
-  ) : null
+  const textFormat = getFormattedText(billByText)
 
   if (!textFormat?.url) {
     notFound()

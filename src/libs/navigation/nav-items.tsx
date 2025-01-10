@@ -1,4 +1,4 @@
-import { CompassIcon, SettingsIcon, Users } from "lucide-react";
+import { CompassIcon, SettingsIcon, Users, LibraryIcon } from "lucide-react";
 
 export type NavId = 'discover' | 'library' | 'settings'
 
@@ -9,7 +9,7 @@ export type NavItems = {
 }
 
 export const navItems: NavItems[] = [
-  {id: 'discover', label: 'Discover', icon: CompassIcon},
-  {id: 'library', label: 'Library', icon: Users},
+  {id: 'discover', label: 'Bills', icon: CompassIcon},
+  {id: 'library', label: 'Library', icon: LibraryIcon},
   {id: 'settings', label: 'Settings', icon: SettingsIcon},
 ]
