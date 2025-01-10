@@ -35,10 +35,11 @@ Legislative bills are notoriously complex and hard to understand. This complexit
 - **Infrastructure**: Digital Ocean
 
 ## Roadmap
+- [X] Quick Questions - Bills List
+- [ ] Dark mode
+- [ ] Live Bills Dashboard
 - [ ] State-level bill analysis (agent)
-- [ ] Dark mode!
 - [ ] Updated News relevant to certain bills 
-- [ ] Federalregister
 - [ ] Committee hearing tracking
 
 ## Contributing
