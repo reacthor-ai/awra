@@ -37,6 +37,7 @@ Legislative bills are notoriously complex and hard to understand. This complexit
 ## Roadmap
 - [X] Quick Questions - Bills List
 - [ ] Dark mode
+- [ ] Update connection pools for chats
 - [ ] Live Bills Dashboard
 - [ ] State-level bill analysis (agent)
 - [ ] Updated News relevant to certain bills 

@@ -5,6 +5,7 @@ import { ProviderInitializer } from "@/provider/ProviderInitializer";
 import { AuthProvider } from "@/provider/AuthProvider";
 import NextTopLoader from 'nextjs-toploader';
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { ThemeProvider } from "@/provider/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
@@ -47,7 +48,14 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
     />
     <ProviderInitializer>
       <AuthProvider>
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </AuthProvider>
       {
         process.env.NODE_ENV === 'production' && (

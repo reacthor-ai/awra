@@ -66,7 +66,7 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
     roomId: (chatResult.chat?.id as string),
     billNumber: transformRoomId(billDetails.bill.type, billDetails.bill.number),
   })
-  const guestId = session?.user.guestId as string
+  const guestId = session?.user.guestId ?? session?.user.id
 
   const agentState = await getAgentStateBySessionId(sessionId)
   const messages = transformMessages(agentState.messages || [])
@@ -83,7 +83,7 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
         url={textFormat.url}
         cboUrl={cboUrl}
         sessionId={sessionId}
-        guestId={guestId}
+        guestId={guestId as string}
         internalMessages={messages}
       />
     </MainNavigation>

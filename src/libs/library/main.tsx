@@ -8,9 +8,9 @@ type LibraryProps = {
 
 export function Library({chatList, stateId}: LibraryProps) {
   return (
-    <div className="flex h-screen flex-col bg-white">
+    <div className="flex h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b bg-background backdrop-blur">
         <div className="flex h-14 items-center px-4 gap-4">
           <h1 className="text-2xl font-semibold">Library</h1>
         </div>

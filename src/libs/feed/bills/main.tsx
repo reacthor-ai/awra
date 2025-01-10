@@ -9,7 +9,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { CalendarIcon, ClockIcon, FileTextIcon, Loader2Icon, RotateCcwIcon } from 'lucide-react'
 import { BillShowcase } from "./bills-showcase"
 import { transformRoomId } from "@/utils/transformRoomId"
-import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AnimatePresence, motion } from "framer-motion"
 import { QuickQuestions } from "./quick-questions"
@@ -17,6 +16,7 @@ import { Message, useChat } from "ai/react"
 import { apiRoutes } from "@/utils/api-links"
 import { useGetAIMessages } from "@/store/ai/messages";
 import { MAX_WORDS } from "@/utils/constant";
+import { Separator } from "@/components/ui/separator";
 
 interface CardHeights {
   [key: string]: number;
@@ -134,7 +134,7 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
   }, [resetCardState])
 
   return (
-    <div className="w-full max-w-full">
+    <div className="w-full h-full max-w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 mt-6">
         {bills.map((bill) => {
           const billId = transformRoomId(bill.type, bill.number)
@@ -163,12 +163,9 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
                       congress={bill.congress}
                       originChamber={bill.originChamber}
                     />
-
+                    <Separator className="mx-5 w-auto"/>
                     <CardHeader className="space-y-2 p-4">
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-xs font-medium">
-                          {bill.type.toUpperCase()} {bill.number}
-                        </Badge>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>

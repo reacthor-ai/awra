@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BillDetailsSkeleton() {
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-background">
       <div className="flex-1 flex flex-col">
         {/* Header Skeleton */}
         <div className="border-b">
@@ -39,7 +39,7 @@ export default function BillDetailsSkeleton() {
         </div>
 
         {/* Chat Input Skeleton */}
-        <div className="border-t bg-white mb-14 p-4 w-full">
+        <div className="border-t bg-background mb-14 p-4 w-full">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-4">
               <Skeleton className="h-12 flex-1 rounded-full"/>

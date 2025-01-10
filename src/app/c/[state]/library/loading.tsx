@@ -2,9 +2,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function LibrarySkeleton() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b bg-background backdrop-blur">
         <div className="flex h-14 items-center px-4 gap-4">
           <Skeleton className="h-8 w-32" />
         </div>
