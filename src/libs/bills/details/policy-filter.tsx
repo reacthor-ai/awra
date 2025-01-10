@@ -28,10 +28,7 @@ export function PolicyFilter({policies, selectedPolicy, onSelectPolicy, state}: 
 
   const getMonthRanges = () => {
     const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
 
-    // Get the last 3 month pairs
     const monthPairs = [];
     for (let i = 0; i < 3; i++) {
       const laterMonth = subMonths(today, i * 2);

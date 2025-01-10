@@ -11,6 +11,10 @@ export async function GET(req: Request) {
 
     const loggedIn = searchParams.get("loggedIn") as unknown as boolean
     const userId = searchParams.get("userId") as string
+    if (userId.length === 0) {
+      return NextResponse.json({messages: []}, {status: 200});
+    }
+
     const {graph} = await billAgent({
       userConfig: {
         loggedIn,

@@ -1,5 +1,8 @@
 import { BillDetail } from "@/types/bill-details";
 import { getBills } from "@/api/external/bill/get-bills";
+import { constructCBOUrl } from "@/utils/url";
+import { transformRoomId } from "@/utils/transformRoomId";
+import { getFormattedText } from "@/utils/getFormattedText";
 
 type SearchParams = {
   limit?: string;
@@ -9,7 +12,7 @@ type SearchParams = {
 }
 
 export async function getBillsWithPolicy(
-  searchParams: SearchParams
+  searchParams: SearchParams,
 ) {
   let offset = 0;
   let limit = 25;
@@ -47,11 +50,33 @@ export async function getBillsWithPolicy(
     const resp = await fetch(url, {
       cache: 'force-cache',
     });
+
     const response: { bill: BillDetail } = await resp.json();
+    const cboUrl = constructCBOUrl(response, response.bill.number)
+
+    let billUrl = ''
+    const textVersionsExist = "textVersions" in response.bill && response.bill.textVersions.count >= 1
+
+    if (textVersionsExist) {
+      const billTextUrl = new URL(response.bill.textVersions.url)
+      billTextUrl.search = searchSpecificBillParams.toString()
+      const billTextResponse = await fetch(billTextUrl, {
+        cache: 'force-cache'
+      })
+
+      const billTextData = await billTextResponse.json()
+      const textVersion = getFormattedText(billTextData)
+
+      billUrl = !textVersion?.url ? '' : textVersion.url
+    }
+
     return {
       ...billDetail,
       policyName: response.bill.policyArea?.name ?? null,
-      textVersionsExist: "textVersions" in response.bill && response.bill.textVersions.count >= 1,
+      textVersionsExist,
+      cboUrl,
+      sessionId: transformRoomId(response.bill.type, response.bill.number),
+      billUrl,
     };
   }) : [];
   return await Promise.all(additionalBillsPromises);

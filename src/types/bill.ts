@@ -13,8 +13,18 @@ export interface Bill {
   updateDate: string;
   updateDateIncludingText: string;
   url: string;
+}
+
+export type BillModified = Bill & {
   policyName: string
   textVersionsExist: boolean;
+  cboUrl: string | null
+  sessionId: string
+  billUrl: string
+}
+
+export type BillModifiedResponse = {
+  bills: BillModified[]
 }
 
 export interface BillsResponse {

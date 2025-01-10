@@ -11,14 +11,14 @@ import { DateRange } from "react-day-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { PolicyFilter } from "@/libs/bills/details/policy-filter";
-import { BillsResponse } from "@/types/bill";
+import { BillModifiedResponse } from "@/types/bill";
 import { useRouter, useSearchParams } from "next/navigation";
 import { navigationLinks } from "@/utils/nav-links";
 import { BillGrid } from "@/libs/feed/bills/main";
 
 type BillsFeedProps = {
   state: string
-  initialBills: BillsResponse
+  initialBills: BillModifiedResponse
 }
 
 export function BillsFeed({state, initialBills}: BillsFeedProps) {
@@ -149,7 +149,7 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
       </div>
       <Separator/>
       {/* Policy Filter */}
-      <div className="sticky top-0 bg-background z-10 min-w-0"> {/* min-w-0 here too */}
+      <div className="sticky top-0 bg-background z-10 min-w-0">
         <PolicyFilter
           policies={policies}
           selectedPolicy={selectedPolicy}
@@ -159,7 +159,7 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
       </div>
 
       {/* Bills Grid */}
-      <div className="flex-1 overflow-y-auto min-w-0"> {/* min-w-0 for grid container */}
+      <div className="flex-1 overflow-y-auto min-w-0">
         <div className="p-4">
           {filteredBills && <BillGrid bills={filteredBills} state={state}/>}
         </div>
