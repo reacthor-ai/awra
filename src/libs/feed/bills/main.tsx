@@ -98,7 +98,7 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
       currMessage.role === "user" && currMessage.content === currentQuestion
     )
 
-    // if were find the message, the next one must be an answer.
+    // if we find the message, the next one must be an answer.
     if (questionIdx !== -1) {
       setAnswer(chatMessages[questionIdx + 1].content)
     }
