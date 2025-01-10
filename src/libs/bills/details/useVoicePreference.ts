@@ -21,15 +21,13 @@ export function useVoicePreference(guestId: string) {
   }, [loadVoicePreference]);
 
   const handleVoiceChange = useCallback(async (newVoice: VoiceType) => {
-    if (guestId) {
-      try {
-        await updateUserVoicePreference(guestId, newVoice);
-        setVoice(newVoice)
-      } catch (error) {
-        setVoice('analyst')
-      }
+    try {
+      await updateUserVoicePreference(guestId, newVoice);
+      setVoice(newVoice)
+    } catch (error) {
+      setVoice('analyst')
     }
-  }, [guestId]);
+  }, []);
 
   return {
     voice,

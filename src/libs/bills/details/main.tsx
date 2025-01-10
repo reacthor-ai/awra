@@ -15,6 +15,7 @@ import { VoiceToggle } from "@/libs/bills/details/voice-toggle"
 import { useRouter } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useVoicePreference } from "@/libs/bills/details/useVoicePreference"
+import { Separator } from "@/components/ui/separator";
 
 const commonQuestions = [
   {
@@ -262,11 +263,11 @@ export function BillDetails(props: BillDetails) {
   if (!isClient) return null
 
   return (
-    <div className="flex flex-col min-h-screen h-[100dvh] bg-neutral-100/80 relative overflow-hidden">
+    <div className="flex flex-col min-h-screen h-[100dvh] bg-background relative overflow-hidden">
       {/* Header */}
       <header
         className={cn(
-          "bg-white/80 backdrop-blur-sm border-b border-neutral-200",
+          "bg-background backdrop-blur-sm",
           "sticky top-0 z-10",
           "-webkit-transform: translate3d(0,0,0)",
           "will-change-transform",
@@ -279,7 +280,7 @@ export function BillDetails(props: BillDetails) {
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="p-2 h-auto rounded-lg hover:bg-neutral-100 transition-colors duration-200"
+              className="p-2 h-auto rounded-lg"
               aria-label="Go back"
             >
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6"/>
@@ -287,7 +288,7 @@ export function BillDetails(props: BillDetails) {
             <div className="flex-1 min-w-0">
               <h1 className="text-base sm:text-lg font-medium mb-1.5">{title}</h1>
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs sm:text-sm h-6 sm:h-7 px-2 hover:bg-neutral-200">
+                <Badge variant="secondary" className="text-xs sm:text-sm h-6 sm:h-7 px-2">
                   {originChamberCode} {billNumber}
                 </Badge>
                 {policy && (
@@ -301,6 +302,8 @@ export function BillDetails(props: BillDetails) {
           </div>
         </div>
       </header>
+
+      <Separator />
 
       <main className={cn(
         "flex-1",
@@ -316,7 +319,7 @@ export function BillDetails(props: BillDetails) {
               <motion.div
                 animate={{rotate: 360}}
                 transition={{duration: 1, repeat: Infinity, ease: "linear"}}
-                className="h-8 w-8 sm:h-10 sm:w-10 border-3 border-blue-500 border-t-transparent rounded-full"
+                className="h-8 w-8 sm:h-10 sm:w-10 border-blue-500 rounded-full"
               />
             </div>
           ) : messages.length === 0 ? (
@@ -335,7 +338,7 @@ export function BillDetails(props: BillDetails) {
                         onClick={() => {
                           setInput(q.question)
                         }}
-                        className="w-full flex items-center gap-3 p-4 h-auto text-left hover:bg-neutral-50 transition-all duration-200 rounded-xl"
+                        className="w-full flex items-center gap-3 p-4 h-auto text-left rounded-xl"
                       >
                         <q.icon className="h-5 w-5 text-blue-500 flex-shrink-0"/>
                         <div className="flex flex-col">
@@ -356,11 +359,10 @@ export function BillDetails(props: BillDetails) {
           )}
         </div>
       </main>
-
+      <Separator />
       {/* Chat Input Form */}
       <footer className={cn(
-        "fixed left-0 right-0 bottom-0",
-        "bg-white/80 backdrop-blur-sm border-t border-neutral-200",
+        "bg-background backdrop-blur-sm",
         isMobile ? "pb-[env(safe-area-inset-bottom)]" : "",
         "z-50",
       )}>
@@ -373,7 +375,7 @@ export function BillDetails(props: BillDetails) {
           placeholder="Ask about this bill..."
           className={cn(
             "w-full resize-none rounded-xl border border-neutral-200",
-            "bg-white/80 backdrop-blur-sm px-4 py-2.5",
+            "bg-background backdrop-blur-sm px-4 py-2.5",
             "text-sm sm:text-base focus:outline-none focus:border-blue-500",
             "transition-all duration-200",
             "text-base",

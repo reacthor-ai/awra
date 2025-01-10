@@ -29,7 +29,7 @@ const StateSelection = ({states}: StateSelectionPageProps) => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div className="bg-background min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
         <div className="w-full pt-5 flex justify-center mb-4">
           <Image

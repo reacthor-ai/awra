@@ -13,7 +13,7 @@ export function BillShowcase({ type, number, congress, originChamber }: BillShow
   const chamberTextColor = originChamber === 'House' ? 'text-blue-500' : 'text-red-500'
 
   return (
-    <div className="relative h-12 overflow-hidden rounded-t-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="relative bg-background h-12 overflow-hidden rounded-t-lg-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="absolute inset-0 flex items-center justify-between px-4">
         <div className="flex items-center space-x-3">
           <Badge variant="secondary" className="h-6 px-2 text-xs font-medium">

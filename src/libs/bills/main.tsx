@@ -52,6 +52,7 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
     });
     router.push(`${navigationLinks.content({stateId: state})}?${newSearchParams.toString()}`);
   }, [router, state, params]);
+
   const policies = useMemo(() => {
     if (!initialBills) return [];
     const policySet = new Set(initialBills.bills?.map(bill => bill?.policyName).filter(Boolean));
