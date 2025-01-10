@@ -160,7 +160,7 @@ export function BillsFeed({state, initialBills}: BillsFeedProps) {
       </div>
 
       {/* Bills Grid */}
-      <div className="flex-1 overflow-y-auto min-w-0">
+      <div className="flex-1 min-w-0">
         <div className="p-4">
           {filteredBills && <BillGrid bills={filteredBills} state={state}/>}
         </div>
