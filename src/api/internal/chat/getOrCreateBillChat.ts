@@ -18,7 +18,7 @@ type GetOrCreateBillChat = {
   billType?: string
 }
 
-export async function getOrCreateBillChat(params: GetOrCreateBillChat, req: Request): Promise<ChatCreationResult> {
+export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<ChatCreationResult> {
   const {
     userId,
     roomId,
