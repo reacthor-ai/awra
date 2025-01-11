@@ -36,7 +36,7 @@ export function RemainingChatsCard({ remainingChat }: RemainingChatsCardProps) {
               <p>
                 Chat counts are tracked server-side to ensure fair usage and prevent misuse.
                 This applies even in private browsing to maintain consistency and protect our services.
-                Your privacy is still protected as we don&lsquo;t store personal browsing data.
+                Your privacy is still protected as we don't store personal browsing data.
               </p>
             </TooltipContent>
           </Tooltip>
