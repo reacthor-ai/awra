@@ -64,7 +64,7 @@ export async function getOrCreateGuestUser(): Promise<GuestUser> {
 
 export async function getUserVoicePreference(userId: string): Promise<VoiceType> {
   const prefs = await db.preferences.get(userId);
-  return prefs?.voice || 'uncleSam';
+  return prefs?.voice || 'analyst';
 }
 
 export async function updateUserVoicePreference(userId: string, voice: VoiceType): Promise<void> {

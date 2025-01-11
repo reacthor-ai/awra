@@ -1,7 +1,9 @@
 import { CACHE_TAG_PREFIX } from "@/api/utils/constant";
 
-interface TextFormat {
-  type: 'Formatted Text' | 'PDF' | 'Formatted XML';
+export type TextFormatType = 'Formatted Text' | 'PDF' | 'Formatted XML'
+
+export interface TextFormat {
+  type: TextFormatType;
   url: string;
 }
 

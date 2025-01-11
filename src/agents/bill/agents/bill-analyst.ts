@@ -40,7 +40,6 @@ function extractBillSections(text: string): BillSection[] {
 function preprocessQuery(query: string): string {
   const enhancedQuery = query.toLowerCase()
     .replace(/^(what|tell me|explain|describe)\s+(is|about|the)?/i, '')
-    .replace(/this bill/i, 'Financial Management Risk Reduction Act')
     .replace(/section/g, 'SECTION')
     .replace(/where/g, 'which section')
     .replace(/what/g, 'which section describes')

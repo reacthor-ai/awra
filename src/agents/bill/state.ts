@@ -2,6 +2,7 @@ import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 import { Document } from "@langchain/core/documents";
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
+import { TextFormat } from "@/api/external/bill/get-bills-by-text";
 
 type Status =
   | 'init'
@@ -20,20 +21,19 @@ export const BillAnalysisState = Annotation.Root({
     reducer: messagesStateReducer,
   }),
   analysisState: Annotation<{
-    // Main bill info
     prompt: string,
     mainBill: {
       url: string;
       content: Document[] | null;
       summary: string | null;
     },
-    // // State impact
-    // stateImpact?: {
-    //   state: string;
-    //   analysis: string | null;
-    // },
     costEstimate?: {
       url: string | null
+      content: Document[] | null
+      summary: string | null
+    },
+    relatedBills: {
+      urls: TextFormat[]
       content: Document[] | null
       summary: string | null
     },
@@ -50,6 +50,11 @@ export const agentStateSchema = z.object({
       url: z.string(),
       content: z.array(z.any()).nullable(),
       summary: z.string().nullable(),
+    }),
+    relatedBills: z.object({
+      urls: z.array(z.any()),
+      content: z.array(z.any()).nullable(),
+      summary: z.string().nullable()
     }),
     costEstimate: z.object({
       url: z.string().nullable(),

@@ -75,16 +75,17 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
     <MainNavigation title={null}>
       <BillDetails
         title={billDetails.bill.title}
-        originChamber={billDetails.bill.originChamber}
         originChamberCode={billDetails.bill.originChamber}
         billNumber={billNumber}
-        latestAction={billDetails.bill.latestAction.text}
         policy={billDetails.bill?.policyArea?.name ?? ''}
         url={textFormat.url}
         cboUrl={cboUrl}
         sessionId={sessionId}
         guestId={guestId as string}
         internalMessages={messages}
+        congress={billDetails.bill.congress}
+        state={state}
+        billType={billDetails.bill.type as BillType}
       />
     </MainNavigation>
   )

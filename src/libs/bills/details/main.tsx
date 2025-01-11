@@ -4,18 +4,18 @@ import { ArrowLeft, Info, SendHorizontal } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { apiRoutes } from "@/utils/api-links"
-import { Message, useChat } from 'ai/react'
+import { useChat } from 'ai/react'
 import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import ReactMarkdown from 'react-markdown'
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+import { motion } from "framer-motion"
 import { VoiceType } from "@/types/ai"
 import { VoiceToggle } from "@/libs/bills/details/voice-toggle"
 import { useRouter } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useVoicePreference } from "@/libs/bills/details/useVoicePreference"
 import { Separator } from "@/components/ui/separator";
+import { BillType } from "@/types/bill-details";
+import { ChatContainer } from "@/libs/bills/details/chats";
 
 const commonQuestions = [
   {
@@ -36,166 +36,41 @@ const commonQuestions = [
     icon: Info,
     description: "Effects on your state"
   },
+  {
+    id: 4,
+    question: "Co Sponsors",
+    icon: Info,
+    description: "Who co-sponsored this bill?"
+  },
 ]
-
-type ChatMessageProps = {
-  role: 'system' | 'user' | 'assistant' | 'data'
-  content: string
-  voice: VoiceType
-}
-
-function ChatMessage({role, content, voice}: ChatMessageProps) {
-  const isAssistant = role === 'assistant' || role === 'system'
-  const bgColor = isAssistant
-    ? (voice === 'uncleSam' ? "bg-red-50/80" : "bg-blue-50/80")
-    : "bg-neutral-50/80"
-  const textColor = isAssistant
-    ? (voice === 'uncleSam' ? "text-red-900" : "text-blue-900")
-    : "text-neutral-900"
-
-  return (
-    <motion.div
-      initial={{opacity: 0, y: 10}}
-      animate={{opacity: 1, y: 0}}
-      exit={{opacity: 0, y: -10}}
-      transition={{duration: 0.3, ease: "easeOut"}}
-      className={cn(
-        "flex w-full gap-3 sm:gap-4",
-        role === 'user' ? "flex-row-reverse" : "flex-row"
-      )}
-    >
-      <Avatar className={cn(
-        "h-8 w-8 sm:h-10 sm:w-10",
-        role === 'user' ? "bg-neutral-200" : (voice === 'uncleSam' ? "bg-red-200" : "bg-blue-200")
-      )}>
-        {role === 'user' ? (
-          <AvatarFallback>U</AvatarFallback>
-        ) : (
-          <>
-            <AvatarImage
-              src={voice === 'uncleSam' ? 'https://www.brownstoner.com/wp-content/uploads/2024/07/uncle-sam-i-want-you-poster-library-congress-flagg-illustration-feature-3.jpg' : '/analyst-avatar.jpg'}
-              alt={voice === 'uncleSam' ? "Uncle Sam" : "Analyst"}
-            />
-            <AvatarFallback>{voice === 'uncleSam' ? "US" : "A"}</AvatarFallback>
-          </>
-        )}
-      </Avatar>
-      <div className={cn(
-        "flex-1 px-4 py-3 sm:px-5 sm:py-4 rounded-xl backdrop-blur-sm",
-        bgColor,
-        textColor
-      )}>
-        {role === 'user' ? (
-          <p className="text-sm sm:text-base leading-relaxed">{content}</p>
-        ) : (
-          <ReactMarkdown
-            className={cn(
-              "text-sm sm:text-base leading-relaxed prose prose-sm sm:prose-base max-w-none",
-              voice === 'uncleSam' ? "prose-red" : "prose-blue"
-            )}>
-            {content}
-          </ReactMarkdown>
-        )}
-      </div>
-    </motion.div>
-  )
-}
-
-function ChatContainer({messages, voice, isLoading}: { messages: Message[]; voice: VoiceType; isLoading: boolean }) {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({behavior: "smooth"})
-  }, [messages])
-
-  return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
-      <div className="space-y-4 sm:space-y-6 max-w-3xl mx-auto">
-        <AnimatePresence>
-          {messages.map((message, index) => (
-            <ChatMessage key={index} role={message.role} content={message.content} voice={voice} />
-          ))}
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="flex w-full gap-3 sm:gap-4"
-            >
-              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 bg-blue-200">
-                <AvatarImage
-                  src={voice === 'uncleSam' ? '/uncle-sam-avatar.jpg' : '/analyst-avatar.jpg'}
-                  alt={voice === 'uncleSam' ? "Uncle Sam" : "Analyst"}
-                />
-                <AvatarFallback>{voice === 'uncleSam' ? "US" : "A"}</AvatarFallback>
-              </Avatar>
-              <ThinkingIndicator />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div ref={messagesEndRef} />
-      </div>
-    </div>
-  )
-}
-
-function ThinkingIndicator() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-4 rounded-xl bg-blue-50/80 backdrop-blur-sm w-fit"
-    >
-      <span className="text-sm sm:text-base text-blue-900 font-medium">Thinking</span>
-      <div className="flex gap-1">
-        {[0, 1, 2].map((i) => (
-          <motion.div
-            key={i}
-            className="h-1.5 w-1.5 rounded-full bg-blue-500"
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.4, 1, 0.4]
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              delay: i * 0.2,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-      </div>
-    </motion.div>
-  )
-}
 
 type BillDetails = {
   title: string
-  originChamber: string
   originChamberCode: string
   billNumber: string
-  latestAction: string
   policy: string
   url: string
   cboUrl: string | null
   sessionId: string
   guestId: string
+  congress: number
   internalMessages: any
+  state: string
+  billType: BillType
 }
 
 export function BillDetails(props: BillDetails) {
   const {
     title,
-    originChamber,
     originChamberCode,
     billNumber,
-    latestAction,
+    congress,
+    billType,
     policy,
     cboUrl,
     sessionId,
     guestId,
+    state,
     internalMessages,
     url: billUrl
   } = props
@@ -225,7 +100,10 @@ export function BillDetails(props: BillDetails) {
       billUrl,
       loggedIn: false,
       cboUrl,
-      voiceType: voice
+      voiceType: voice,
+      billNumber,
+      congress,
+      billType,
     },
   })
 
@@ -303,7 +181,7 @@ export function BillDetails(props: BillDetails) {
         </div>
       </header>
 
-      <Separator />
+      <Separator/>
 
       <main className={cn(
         "flex-1",
@@ -336,7 +214,7 @@ export function BillDetails(props: BillDetails) {
                         variant="outline"
                         type="submit"
                         onClick={() => {
-                          setInput(q.question)
+                          setInput(q.question + ": " + q.description + " My state: " + state)
                         }}
                         className="w-full flex items-center gap-3 p-4 h-auto text-left rounded-xl"
                       >
@@ -359,7 +237,7 @@ export function BillDetails(props: BillDetails) {
           )}
         </div>
       </main>
-      <Separator />
+      <Separator/>
       {/* Chat Input Form */}
       <footer className={cn(
         "bg-background backdrop-blur-sm",
