@@ -32,7 +32,7 @@ export async function shouldAllowGuestChat(): Promise<boolean> {
 export async function incrementAnonymousUsage(): Promise<void> {
   const headersList = await headers()
   const hash = getHash(headersList.get('x-forwarded-for') || 'unknown')
-  console.log({hash})
+
   await prisma.anonymousUsage.upsert({
     where: {hash},
     create: {hash, chatCount: 1},
