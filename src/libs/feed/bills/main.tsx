@@ -17,6 +17,7 @@ import { apiRoutes } from "@/utils/api-links"
 import { useGetAIMessages } from "@/store/ai/messages";
 import { MAX_WORDS } from "@/utils/constant";
 import { Separator } from "@/components/ui/separator";
+import { ChatContentMarkdown } from "@/components/ui/chat-content-markdown";
 
 interface CardHeights {
   [key: string]: number;
@@ -277,13 +278,12 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
                         >
                           {aiChatMessages.length > 0 ? (
                             <div className="text-lg font-medium mb-4 text-center overflow-y-auto max-h-[30vh]">
-                              {aiChatMessages[aiChatMessages.length - 1].content}
+                              <ChatContentMarkdown content={aiChatMessages[aiChatMessages.length - 1].content}/>
                             </div>
                           ) : (
                             <div className="text-lg font-medium mb-4 text-center overflow-y-auto max-h-[30vh]">
-                              {
-                                (billId === currentBillId && answer) ? answer : "No response yet"
-                              }
+                              <ChatContentMarkdown
+                                content={(billId === currentBillId && answer) ? answer : "No response yet"}/>
                             </div>
                           )}
                         </motion.div>

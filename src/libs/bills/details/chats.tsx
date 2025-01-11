@@ -5,13 +5,15 @@ import ReactMarkdown from 'react-markdown'
 import { cn } from "@/lib/utils"
 import { Message } from 'ai/react'
 import { VoiceType } from "@/types/ai"
+import remarkGfm from 'remark-gfm'
+import { ChatContentMarkdown } from "@/components/ui/chat-content-markdown";
 
 const ThinkingIndicator = memo(() => {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{opacity: 0}}
+      animate={{opacity: 1}}
+      exit={{opacity: 0}}
       className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-4 rounded-xl bg-background shadow-sm w-fit"
     >
       <span className="text-sm sm:text-base text-foreground font-medium">Thinking</span>
@@ -39,7 +41,7 @@ const ThinkingIndicator = memo(() => {
 
 ThinkingIndicator.displayName = 'ThinkingIndicator'
 
-const ChatMessage = memo(({ role, content, voice }: {
+const ChatMessage = memo(({role, content, voice}: {
   role: 'system' | 'user' | 'assistant' | 'data'
   content: string
   voice: VoiceType
@@ -48,10 +50,10 @@ const ChatMessage = memo(({ role, content, voice }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      initial={{opacity: 0, y: 10}}
+      animate={{opacity: 1, y: 0}}
+      exit={{opacity: 0, y: -10}}
+      transition={{duration: 0.3, ease: "easeOut"}}
       className={cn(
         "flex w-full gap-3 sm:gap-4",
         role === 'user' ? "flex-row-reverse" : "flex-row"
@@ -84,16 +86,7 @@ const ChatMessage = memo(({ role, content, voice }: {
         {role === 'user' ? (
           <p className="text-sm sm:text-base leading-relaxed">{content}</p>
         ) : (
-          <ReactMarkdown
-            className={cn(
-              "text-sm sm:text-base leading-relaxed prose prose-sm sm:prose-base max-w-none",
-              "prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground",
-              "prose-a:text-primary hover:prose-a:text-primary/80",
-              "prose-code:text-primary-foreground prose-code:bg-primary/10 prose-code:rounded prose-code:px-1",
-              "prose-pre:bg-muted prose-pre:text-muted-foreground"
-            )}>
-            {content}
-          </ReactMarkdown>
+         <ChatContentMarkdown content={content} />
         )}
       </div>
     </motion.div>
@@ -116,7 +109,7 @@ const ChatContainer = memo((props: {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    messagesEndRef.current?.scrollIntoView({behavior: "smooth"})
   }, [messages])
 
   const bubbleStyles = `
@@ -162,10 +155,10 @@ const ChatContainer = memo((props: {
             ))}
             {isLoading && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                initial={{opacity: 0, y: 10}}
+                animate={{opacity: 1, y: 0}}
+                exit={{opacity: 0, y: -10}}
+                transition={{duration: 0.3, ease: "easeOut"}}
                 className="flex w-full gap-3 sm:gap-4"
               >
                 <Avatar className="h-8 w-8 sm:h-10 sm:w-10 bg-primary">
@@ -175,11 +168,11 @@ const ChatContainer = memo((props: {
                   />
                   <AvatarFallback>{voice === 'uncleSam' ? "US" : "A"}</AvatarFallback>
                 </Avatar>
-                <ThinkingIndicator />
+                <ThinkingIndicator/>
               </motion.div>
             )}
           </AnimatePresence>
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef}/>
         </div>
       </div>
     </>
