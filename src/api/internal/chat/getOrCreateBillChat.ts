@@ -1,4 +1,5 @@
 import { type Chat, ChatType, prisma } from '@/lib/prisma'
+import { incrementAnonymousUsage, shouldAllowGuestChat } from "@/api/internal/anonymous/tracking";
 
 const GUEST_CHAT_LIMIT = 3
 
@@ -17,7 +18,7 @@ type GetOrCreateBillChat = {
   billType?: string
 }
 
-export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<ChatCreationResult> {
+export async function getOrCreateBillChat(params: GetOrCreateBillChat, req: Request): Promise<ChatCreationResult> {
   const {
     userId,
     roomId,
@@ -35,7 +36,7 @@ export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<
       },
     })
 
-    // If chat exists, return it
+    // If chat exists, return it without incrementing usage
     if (existingChat) {
       return {
         success: true,
@@ -60,9 +61,16 @@ export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<
       }
     }
 
-    // Check guest restrictions
     if (user.isGuest) {
-      // Check chat count limit using the actual count of chats
+      const canUseGuest = await shouldAllowGuestChat()
+      if (!canUseGuest) {
+        return {
+          success: false,
+          error: 'Guest access limit reached. Please sign in to continue.',
+          remainingChats: 0,
+        }
+      }
+
       if (user._count.chats >= GUEST_CHAT_LIMIT) {
         return {
           success: false,
@@ -87,6 +95,11 @@ export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<
       })
     )
 
+    // Increment anonymous usage tracking after successful creation
+    if (user.isGuest) {
+      await incrementAnonymousUsage()
+    }
+
     const remainingChats = user.isGuest ?
       GUEST_CHAT_LIMIT - (user._count.chats + 1) :
       null
@@ -103,18 +116,4 @@ export async function getOrCreateBillChat(params: GetOrCreateBillChat): Promise<
       error: 'Failed to create chat',
     }
   }
-}
-
-export async function getRemainingGuestChats(userId: string): Promise<number | null> {
-  const user = await prisma.user.findUnique({
-    where: {id: userId},
-    include: {
-      _count: {
-        select: {chats: true}
-      }
-    }
-  })
-
-  if (!user || !user.isGuest) return null
-  return Math.max(0, GUEST_CHAT_LIMIT - user._count.chats)
 }

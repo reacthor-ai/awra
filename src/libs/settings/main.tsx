@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { signIn } from 'next-auth/react'
 import { useAuthSignOut } from "@/hooks/use-auth-signout";
 import { clearGuestData } from "@/lib/guestDb";
+import { RemainingChatsCard } from "@/libs/settings/remaining-chat";
 
 type SettingsProps = {
   remainingChat: number | null
@@ -55,12 +56,7 @@ export function Settings({remainingChat, isGuest, name}: SettingsProps) {
         )
       }
 
-      {remainingChat !== null && (
-        <section className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Remaining Chats</h2>
-          <p className="text-3xl font-bold text-red-500">{remainingChat} left</p>
-        </section>
-      )}
+      <RemainingChatsCard remainingChat={remainingChat} />
     </div>
   )
 }

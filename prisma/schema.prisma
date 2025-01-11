@@ -68,6 +68,16 @@ model Chat {
   @@index([chatType])
 }
 
+model AnonymousUsage {
+  id        String   @id @default(cuid())
+  hash      String   @unique
+  chatCount Int      @default(0)
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @updatedAt
+
+  @@index([hash])
+}
+
 enum ChatType {
   GENERAL
   BILL
