@@ -2,11 +2,11 @@ import { END, START, StateGraph } from "@langchain/langgraph";
 import { BillAnalysisState } from "@/agents/bill/state";
 import { billAnalystAgent } from "@/agents/bill/agents/bill-analyst";
 import { billCostEstimateAgent } from "@/agents/bill/agents/bill-cost-estimate";
-import { type CheckpointerConfig, createCheckpointer } from "./checkpointer/main";
-import { shouldRunCostEstimate, shouldProceedWithAnalysis } from "@/agents/bill/conditions";
+import { createCheckpointer } from "./checkpointer/main";
+import { shouldProceedWithAnalysis, shouldRunCostEstimate } from "@/agents/bill/conditions";
 import { billSafetyAgent } from "@/agents/bill/agents/safety-agent/main";
 
-export async function createBillAnalysisWorkflow(config?: CheckpointerConfig) {
+export async function createBillAnalysisWorkflow() {
   const checkpointer = await createCheckpointer({
     loggedIn: false,
     postgresUrl: process.env.PUBLIC_POSTGRES_URL!
@@ -48,13 +48,12 @@ type BillAgentParams = {
   prompt: string;
   sessionId: string;
   cboUrl: string | null
-  userConfig: CheckpointerConfig;
 };
 
 export async function billAgent(params: BillAgentParams) {
-  const {url, prompt, sessionId, userConfig, cboUrl} = params;
+  const {url, prompt, sessionId, cboUrl} = params;
 
-  const {graph, checkpointer,} = await createBillAnalysisWorkflow(userConfig);
+  const {graph, checkpointer,} = await createBillAnalysisWorkflow();
 
   const results = await graph.invoke(
     {
@@ -66,6 +65,11 @@ export async function billAgent(params: BillAgentParams) {
           content: null,
           summary: null,
         },
+        relatedBills: {
+          urls: [],
+          content: null,
+          summary: null
+        },
         costEstimate: {
           url: cboUrl,
           content: null,
@@ -75,7 +79,7 @@ export async function billAgent(params: BillAgentParams) {
         status: 'init',
         error: null
       }
-    },
+    } satisfies typeof BillAnalysisState.State,
     {
       configurable: {
         thread_id: sessionId

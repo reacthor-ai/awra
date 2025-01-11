@@ -9,5 +9,6 @@ export const navigationLinks = {
     }
   ) => `/c/${stateId}/bill/${billNumber}?congress=${congress}&billType=${billType}`,
   library: ({stateId}: { stateId: string }) => `/c/${stateId}/library`,
-  settings: ({stateId}: { stateId: string }) => `/c/${stateId}/setting`
+  settings: ({stateId}: { stateId: string }) => `/c/${stateId}/setting`,
+  liveHouse: ({stateId}: { stateId: string }) => `/c/${stateId}/live-house`,
 } as const

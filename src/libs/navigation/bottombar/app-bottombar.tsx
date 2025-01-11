@@ -1,14 +1,13 @@
 'use client'
 
 import { createElement, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { navigationLinks } from "@/utils/nav-links";
-import { navItems } from "@/libs/navigation/nav-items";
+import { useRouter } from "next/navigation";
+import { navItems, useNavigate } from "@/libs/navigation/nav-items";
 
 export const BottomNav = ({title}: { title: string }) => {
   const [active, setActive] = useState(title.toLowerCase())
   const router = useRouter()
-  const params = useParams()
+  const navigate = useNavigate();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 shadow-md md:hidden border-t">
@@ -22,33 +21,10 @@ export const BottomNav = ({title}: { title: string }) => {
               >
                 <button
                   onClick={() => {
-                    if (item.id === "library") {
-                      setActive(title.toLowerCase())
-                      router.push(
-                        navigationLinks.library({
-                          stateId: params["state"] as string
-                        })
-                      )
-                    }
-
-                    if (item.id === "discover") {
-                      setActive(title.toLowerCase())
-                      router.push(
-                        navigationLinks.content({
-                          stateId: params["state"] as string
-                        })
-                      )
-                    }
-
-                    if (item.id === 'settings') {
-                      setActive(title.toLowerCase())
-                      router.push(
-                        navigationLinks.settings({
-                          stateId: params["state"] as string
-                        })
-                      )
-                    }
-                  }}
+                    setActive(title.toLowerCase());
+                    router.push(navigate(item.id));
+                  }
+                  }
                   className="flex flex-col items-center justify-center w-full gap-1 transition-colors duration-200"
                 >
                   {createElement(item.icon, {

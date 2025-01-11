@@ -4,9 +4,7 @@ import { billAgent } from "@/agents/bill/main";
 import { chatAnthropic } from "@/agents/anthropic";
 import { billChatPrompt, BillPromptParams } from "@/agents/bill/prompts";
 import { saveMessages } from "@/app/c/api/bills/ai/bill-agent/save-message";
-
-const PUBLIC_POSTGRES_URL = process.env.PUBLIC_POSTGRES_URL!;
-const PRIVATE_POSTGRES_URL = process.env.PRIVATE_POSTGRES_URL!;
+import { getCosponsors } from "@/api/external/bill/get-bill-by-sponsor";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,31 +15,35 @@ export async function POST(req: NextRequest) {
       loggedIn,
       messages,
       voiceType,
+      billNumber,
+      congress,
+      billType = null,
       cboUrl = null,
     } = body;
 
     const prompt = messages[messages.length - 1].content;
     const data = new StreamData();
 
-    const {results: billResults, graph} = await billAgent({
-      url: billUrl,
-      userConfig: {
-        loggedIn,
-        postgresUrl: loggedIn ? PRIVATE_POSTGRES_URL : PUBLIC_POSTGRES_URL,
-      },
-      sessionId: userId,
-      prompt,
-      cboUrl,
-    });
+    const {cosponsors} = billType ? await getCosponsors(process.env.CONGRESS_GOV_API_KEY as string, {
+      billNumber,
+      congress,
+      billType: billType.toLowerCase(),
+    }) : { cosponsors: [] }
+
+    const {results: billResults, graph} =
+      await billAgent({
+        url: billUrl,
+        sessionId: userId,
+        prompt,
+        cboUrl,
+      });
 
     const config = {
       configurable: {
         thread_id: userId,
       }
     };
-
     const state = await graph.getState(config);
-
     const promptParams = {
       current_time: new Date().toISOString(),
       chat_history: state.values.messages || [],
@@ -52,11 +54,13 @@ export async function POST(req: NextRequest) {
       user_query: prompt,
       voiceType,
       error: state.values.analysisState?.error,
+      cosponsors: cosponsors || [],
     } satisfies BillPromptParams
 
     const formattedPrompt = await billChatPrompt(promptParams)
 
     const stream = await chatAnthropic.stream(formattedPrompt);
+
     return LangChainAdapter.toDataStreamResponse(stream, {
       data,
       callbacks: {
@@ -65,7 +69,7 @@ export async function POST(req: NextRequest) {
             completion,
             messages: [messages[messages.length - 1]],
             config,
-            graph
+            graph,
           }).then(() => {
 
             data.close()

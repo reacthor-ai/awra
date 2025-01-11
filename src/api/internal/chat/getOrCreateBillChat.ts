@@ -1,6 +1,6 @@
 import { type Chat, ChatType, prisma } from '@/lib/prisma'
 
-const GUEST_CHAT_LIMIT = 5  // Maximum number of chats a guest can create
+const GUEST_CHAT_LIMIT = 3
 
 interface ChatCreationResult {
   success: boolean
