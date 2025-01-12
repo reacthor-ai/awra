@@ -3,11 +3,16 @@ import { NextPageProps } from "@/utils/next-props";
 import { Library } from "@/libs/library/main";
 import { auth } from "auth";
 import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export default async function LibraryPage(props: NextPageProps<{ state: string }>) {
   const nextParams = await props.params
 
   const session = await auth()
+
+  if (!session) {
+    redirect('/')
+  }
 
   const chatList = await prisma.chat.findMany({
     where: {

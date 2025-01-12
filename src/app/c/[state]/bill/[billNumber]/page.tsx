@@ -23,6 +23,10 @@ export default async function BillDetailPage(props: NextPageProps<{ billNumber: 
 
   const session = await auth()
 
+  if (!session) {
+    redirect('/')
+  }
+
   const [billDetails, billByText] = await Promise.all([
     getBillDetails(
       process.env.CONGRESS_GOV_API_KEY as string,
