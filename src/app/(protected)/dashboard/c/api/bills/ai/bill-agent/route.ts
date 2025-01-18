@@ -5,6 +5,7 @@ import { chatAnthropic } from "@/agents/anthropic";
 import { billChatPrompt, BillPromptParams } from "@/agents/bill/prompts";
 import { saveMessages } from "@/app/(protected)/dashboard/c/api/bills/ai/bill-agent/save-message";
 import { getCosponsors } from "@/api/external/bill/get-bill-by-sponsor";
+import { Document } from "@langchain/core/documents";
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,7 +63,10 @@ export async function POST(req: NextRequest) {
       cosponsors: cosponsors || [],
       requestTweetPosting: billResults.analysisState.requestTweetPosting,
       status: billResults.analysisState.twitter?.processManagement.status ?? 'init',
-      agentMessage: billResults.analysisState.twitter?.context?.agentMessage ?? ''
+      agentMessage: billResults.analysisState.twitter?.context?.agentMessage ?? '',
+      bill_content: billResults.analysisState.mainBill.content![0] ?
+        billResults.analysisState.mainBill.content![0].pageContent :
+        billResults.analysisState.mainBill.summary ?? ''
     } satisfies BillPromptParams
     const formattedPrompt = await billChatPrompt(promptParams)
     const stream = await chatAnthropic.stream(formattedPrompt);

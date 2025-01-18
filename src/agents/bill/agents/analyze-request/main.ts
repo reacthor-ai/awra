@@ -21,7 +21,6 @@ export const analyzeRequestAgent = async (state: typeof BillAnalysisState.State)
       prompt: state.analysisState.prompt,
       lastMessage: findLastMessageFromAI?.content as string ?? ''
     });
-
     if (result.type === 'tweet') {
       if (!state.analysisState.mainBill.summary) {
         return {

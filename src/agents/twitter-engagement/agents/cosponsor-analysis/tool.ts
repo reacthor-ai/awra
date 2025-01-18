@@ -17,17 +17,43 @@ const selectionInputSchema = z.object({
 });
 
 const selectionOutputSchema = z.object({
+  type: z.enum(['selected', 'skipped', 'retry', 'invalid']),
   selectedRepresentative: cosponsorSchema.nullable(),
-  isValid: z.boolean(),
-  message: z.string()
+  reasoning: z.string().describe("Explanation for why this selection was interpreted this way")
 });
 
 export const REPRESENTATIVE_SELECTION_PROMPT = ChatPromptTemplate.fromMessages([
   ["system", `You are helping a user select a representative to contact about a bill.
-Present the list of representatives and process their selection.
-Format each representative as: "[number]. [fullName] ([state], [party])"
-Allow option '0' for proceeding without selecting a specific representative.
-`],
+Process their selection and analyze the user's response, returning one of four types with appropriate reasoning.
+if there isn't any representatives just communicate that with the user.
+
+Expected output format for each type:
+
+1. When user selects a valid representative (number from list):
+"type": "selected",
+"selectedRepresentative": (corresponding representative object),
+"reasoning": "User selected a valid number (N) corresponding to [Representative Name]"
+
+2. When user explicitly skips:
+"type": "skipped",
+"selectedRepresentative": null,
+"reasoning": "User explicitly indicated they want to skip selection by saying [exact user input]"
+
+3. When user makes invalid selection but shows intent:
+"type": "retry",
+"selectedRepresentative": null,
+"reasoning": "User attempted to make a selection but [specific reason why invalid, e.g., 'number out of range', 'invalid format']"
+
+4. When user's input is unclear:
+"type": "invalid",
+"selectedRepresentative": null,
+"reasoning": "User's input '[exact input]' doesn't match any expected response pattern and lacks clear intent"
+
+Note: 
+- 'skipped' is for explicit skip intent (e.g., "skip", "no", "pass", "0")
+- 'retry' is for invalid but genuine attempts to select
+- 'invalid' is for unclear or ambiguous responses
+- Include specific details in reasoning to explain the decision`],
   ["human", `Representatives: {representatives_list}
 User's selection: {user_response}`]
 ]);
@@ -55,7 +81,6 @@ export const createSelectionTool = () => {
       try {
         const validatedInput = selectionInputSchema.parse(input);
 
-        // Format the representatives list
         const representativesList = validatedInput.cosponsors
           .map((rep, index) => `${index + 1}. ${rep.fullName} (${rep.state}, ${rep.party})`)
           .join('\n');
@@ -66,52 +91,13 @@ export const createSelectionTool = () => {
         });
 
         const response = await modelWithTools.invoke(formattedPrompt);
-        const messageContent = response.content as MessageContentComplex[];
+        const toolCall = response.content[0] as MessageContentComplex;
 
-        if (!messageContent || messageContent.length <= 0) {
-          throw new Error('No valid tool use response found');
+        if (!toolCall || toolCall.type !== 'tool_use' || toolCall.name !== 'select_representative') {
+          throw new Error('Invalid tool response format');
         }
 
-        const toolUseContent = messageContent.find(
-          content =>
-            "type" in content &&
-            content.type === 'tool_use' &&
-            content.name === 'select_representative'
-        );
-
-        if (!toolUseContent || toolUseContent.type !== 'tool_use') {
-          throw new Error('No valid tool use response found');
-        }
-
-        const selection = parseInt(validatedInput.userResponse);
-
-        // Handle general concern option (0)
-        if (selection === 0) {
-          return selectionOutputSchema.parse({
-            selectedRepresentative: null,
-            isValid: true,
-            message: "Proceeding with general concern without specific representative."
-          });
-        }
-
-        // Validate selection
-        if (isNaN(selection) ||
-          selection < 1 ||
-          selection > validatedInput.cosponsors.length) {
-          return selectionOutputSchema.parse({
-            selectedRepresentative: null,
-            isValid: false,
-            message: "Invalid selection. Please choose a valid number from the list."
-          });
-        }
-
-        const selectedRep = validatedInput.cosponsors[selection - 1];
-        return selectionOutputSchema.parse({
-          selectedRepresentative: selectedRep,
-          isValid: true,
-          message: `Selected ${selectedRep.fullName} as the representative to contact.`
-        });
-
+        return selectionOutputSchema.parse(JSON.parse(toolCall.input));
       } catch (error) {
         if (error instanceof z.ZodError) {
           throw new Error(`Validation error: ${JSON.stringify(error.errors)}`);

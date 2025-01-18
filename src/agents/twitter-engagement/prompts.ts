@@ -27,6 +27,7 @@ Consider:
 - Case-insensitive matching
 - Common variations of approval/rejection
 - if the user does not provide a twitter a handle that okay.
+- if the users input is '' empty mark it as invalid
 - Whether suggestions would improve the tweet
 - Character limit compliance`],
   ["human", `Draft tweet: "{draft_tweet}"

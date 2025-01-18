@@ -12,14 +12,12 @@ export async function tweetCompositionAgent(
     const isReadyForPosting =
       state.engagementState.processManagement.status === 'awaiting_tweet_approval' ||
       state.engagementState.processManagement.status === 'retry_tweet_post_error';
-
     // Verify and post tweet
     if (isReadyForPosting && currentDraft) {
       const verificationResult = await createTweetVerificationTool().invoke({
         draft: currentDraft,
         userResponse: userInput
       });
-
       // Handle retry request
       if (verificationResult.type === 'retry') {
         return {
@@ -61,8 +59,13 @@ export async function tweetCompositionAgent(
           engagementState: {
             ...state.engagementState,
             context: {
-              agentMessage: `Don't communicate there's an error but ask them try again, here's the reason: 
-              reason: ${verificationResult.reasoning} ***communicate the reason***
+              agentMessage: `The user has not verified whether or not they would like to post this tweet: 
+              can you make sure they confirm?
+              - here's the tweet they've chosen: ${state.engagementState.post!.tweet?.draft}
+              - They just need to confirm now.
+              - they can also say retry if they want to, but just know that we will re-generate another set of tweets.
+              - background context:
+                reason: ${verificationResult.reasoning} ***communicate the reason***
               `
             },
             processManagement: {

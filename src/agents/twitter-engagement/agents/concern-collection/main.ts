@@ -12,6 +12,8 @@ export async function concernCollectionAgent(
 
   try {
     if (isDirectToConcernCollectionAgent(state)) {
+      const findLastMessageFromAI = state.messages.findLast((a) => a.getType() === 'ai')
+
       const concernCollection = createConcernCollectionTool();
       const result = await concernCollection.invoke({
         input: state.engagementState.inputInfo.prompt,
@@ -19,8 +21,7 @@ export async function concernCollectionAgent(
       });
 
       let updatedState: typeof TwitterEngagementState.State;
-
-      if (result) {
+      if (result && findLastMessageFromAI) {
         updatedState = {
           ...state,
           engagementState: {
@@ -54,7 +55,11 @@ export async function concernCollectionAgent(
               status: 'init',
             },
             context: {
-              agentMessage: "There was an issue updating the concerns of the users we'll have to try again."
+              agentMessage: `This is likely the first message and the user either didn't provide what they're concern about.
+               So we need them to clarify. Provide clear guidance and search your context to engage in a discussion on what they're
+               concern is about.
+               ***tweet***
+              `
             }
           },
           messages: state.messages

@@ -19,7 +19,7 @@ export async function representativeSelectionAgent(state: typeof TwitterEngageme
 
   const representativesList = state.engagementState.inputInfo?.bill?.cosponsors
     .map((rep, index) => `${index + 1}. ${rep.fullName} (${rep.state}, ${rep.party})`)
-    .join('\n');'.'
+    .join('\n');
   try {
     if (state.engagementState.processManagement.status === 'awaiting_representative_selection') {
       const selectionTool = createSelectionTool();
@@ -27,12 +27,7 @@ export async function representativeSelectionAgent(state: typeof TwitterEngageme
         userResponse: state.engagementState.inputInfo.prompt,
         cosponsors: state.engagementState.inputInfo.bill?.cosponsors || []
       });
-
-      if (
-        !selectionResult.isValid &&
-        state.engagementState.inputInfo.bill &&
-        state.engagementState.inputInfo.bill?.cosponsors?.length > 0 // if we have co-sponsors
-      ) {
+      if (selectionResult.type === 'retry') {
         return {
           ...state,
           engagementState: {
@@ -43,39 +38,88 @@ export async function representativeSelectionAgent(state: typeof TwitterEngageme
             },
             processManagement: {
               ...state.engagementState.processManagement,
-              status: 'generating_tweet_suggestions'
+              status: 'awaiting_representative_selection',
             },
             context: {
-              agentMessage: `There was an issue when selecting a representative, if they don't want to choose 
-              a representative they can just put: 0 or just say it or choose from the list of representatives:
-               ${representativesList}
+              agentMessage: `The user made an invalid selection. They can either:
+              1. Choose a representative from this list:
+              ${representativesList}
+              2. Enter '0' or say 'skip' to proceed without selecting a representative.
+              Please make a valid selection.`
+            }
+          }
+        };
+      }
+
+      if (selectionResult.type === 'skipped') {
+        return {
+          ...state,
+          engagementState: {
+            ...state.engagementState,
+            cosponsorsSelection: {
+              selectedRepresentative: null,
+              userVerifiedRepresentative: true,
+            },
+            processManagement: {
+              ...state.engagementState.processManagement,
+              status: 'generating_tweet_suggestions',
+            },
+            context: {
+              agentMessage: `The user has chosen to proceed without selecting a specific representative. 
+              You should tailor the message for a general audience rather than a specific representative.`
+            }
+          }
+        };
+      }
+
+      if (selectionResult.type === 'invalid') {
+        return {
+          ...state,
+          engagementState: {
+            ...state.engagementState,
+            cosponsorsSelection: {
+              selectedRepresentative: null,
+              userVerifiedRepresentative: false,
+            },
+            processManagement: {
+              ...state.engagementState.processManagement,
+              status: 'awaiting_representative_selection'
+            },
+            context: {
+              agentMessage: `I couldn't understand your selection. You have two options:
+              1. Choose a representative by number from this list:
+              ${representativesList}
+              2. Enter '0' or say 'skip' if you don't want to select a specific representative.
+              Please provide a clear response.
+              reason: ${selectionResult.reasoning}
               `
             }
           }
         }
       }
-      return {
-        ...state,
-        engagementState: {
-          ...state.engagementState,
-          cosponsorsSelection: {
-            selectedRepresentative: selectionResult.selectedRepresentative,
-            userVerifiedRepresentative: true,
-          },
-          processManagement: {
-            ...state.engagementState.processManagement,
-            status: 'generating_tweet_suggestions',
-          },
-          context: {
-            agentMessage: `The user has successfully selected or not a representative, 
-            message: ${selectionResult.message}, representative: ${selectionResult.selectedRepresentative}
-            if they didn't that's okay. Just thank them for confirming the representative or not.
-            Follow up by asking questions related to what they'd like to generate the tweet about. Based on their 
-            user concern: ${state.engagementState.concernCollection?.userConcern}
-            `
+
+      if (selectionResult.type === 'selected') {
+        return {
+          ...state,
+          engagementState: {
+            ...state.engagementState,
+            cosponsorsSelection: {
+              selectedRepresentative: selectionResult.selectedRepresentative,
+              userVerifiedRepresentative: true,
+            },
+            processManagement: {
+              ...state.engagementState.processManagement,
+              status: 'generating_tweet_suggestions',
+            },
+            context: {
+              agentMessage: `The user has selected ${selectionResult.selectedRepresentative?.fullName} as their representative to contact. 
+              You can proceed with generating the message for this specific representative.
+              additional details: ${selectionResult.selectedRepresentative}
+              `
+            }
           }
-        }
-      };
+        };
+      }
     }
 
     // If we're already verified or ready for general post, pass through

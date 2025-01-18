@@ -18,7 +18,7 @@ export async function tweetSuggestionAgent(
         description: state.engagementState.concernCollection.userConcern?.description || "",
         billId: state.engagementState.concernCollection.userConcern?.billId,
         desiredOutcome: state.engagementState.concernCollection.userConcern?.desiredOutcome || "",
-        twitterHandle: state.engagementState.tweetTracker.state?.twitterHandle,
+        representative: state.engagementState.cosponsorsSelection.selectedRepresentative,
         count: 3
       });
       return {
@@ -61,6 +61,9 @@ Tell them to choose one or type "retry" for new options.`
           ...state,
           engagementState: {
             ...state.engagementState,
+            concernCollection: {
+              userConcern: null
+            },
             tweetTracker: {
               ...state.engagementState.tweetTracker,
               state: {
@@ -99,7 +102,7 @@ Tell them to choose one or type "retry" for new options.`
             ...state.engagementState,
             inputInfo: {
               ...state.engagementState.inputInfo,
-              prompt: 'not yet selected'
+              prompt: ''
             },
             tweetTracker: {
               ...state.engagementState.tweetTracker,
@@ -144,7 +147,8 @@ Is this the tweet you want to post? Reply:
             status: suggestions.length <= 0 ? 'generating_tweet_suggestions' : 'awaiting_tweet_selection'
           },
           context: {
-            agentMessage: `There's an issue here's the reason below communicate the next steps to the user.
+            agentMessage: `The user most likely want to modify a certain aspect of this bill or the request is invalid.
+            Previous Suggestions: ${suggestions}
             Reason: ${choiceResult?.reasoning}
             `
           },
