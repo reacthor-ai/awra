@@ -67,7 +67,7 @@
     "react-markdown": "^9.0.1",
     "recharts": "^2.15.0",
     "remark-gfm": "^4.0.0",
-    "resend": "link:next-auth/providers/resend",
+    "resend": "4.1.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "twitter-api-v2": "^1.19.0",

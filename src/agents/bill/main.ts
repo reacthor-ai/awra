@@ -8,6 +8,7 @@ import { Cosponsor } from "@/types/bill-sponsors";
 import { analyzeRequestAgent } from "@/agents/bill/agents/analyze-request/main";
 import { twitterEngagementAgent } from "@/agents/twitter-engagement/main";
 import { isBillAnalystRequested, isTweetWithSummaryRequested } from "@/agents/bill/predicate";
+import { RawSummary } from "@/api/external/bill/get-summaries";
 
 export async function createBillAnalysisWorkflow(sessionId: string) {
   const checkpointer = await createCheckpointer({

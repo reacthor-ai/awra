@@ -1,6 +1,7 @@
 import { GetCosponsorsParams } from "@/types/bill-sponsors";
+import { GetSummariesParams } from "@/api/external/bill/get-summaries";
 
-export function validateBillParams(params: GetCosponsorsParams): void {
+export function validateBillParams(params: GetCosponsorsParams | GetSummariesParams): void {
   if (params.congress < 1 || params.congress > 150) {
     throw new Error('Invalid congress number');
   }

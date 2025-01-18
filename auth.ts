@@ -117,7 +117,6 @@ const config = {
 `
           })
         } catch (error) {
-          console.log({error})
           throw new Error(`Email sending failed: ${error}`)
         }
       },
