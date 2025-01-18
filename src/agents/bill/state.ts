@@ -3,6 +3,8 @@ import { Document } from "@langchain/core/documents";
 import { BaseMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { TextFormat } from "@/api/external/bill/get-bills-by-text";
+import { Cosponsor } from "@/types/bill-sponsors";
+import { TwitterEngagementState } from "@/agents/twitter-engagement/state";
 
 type Status =
   | 'init'
@@ -21,12 +23,17 @@ export const BillAnalysisState = Annotation.Root({
     reducer: messagesStateReducer,
   }),
   analysisState: Annotation<{
-    prompt: string,
+    twitter: typeof TwitterEngagementState.State.engagementState | null
+    prompt: string
+    userId: string
+    chatId: string
     mainBill: {
       url: string;
+      billNumber: string;
       content: Document[] | null;
       summary: string | null;
     },
+    cosponsors: Cosponsor[]
     costEstimate?: {
       url: string | null
       content: Document[] | null
@@ -37,7 +44,7 @@ export const BillAnalysisState = Annotation.Root({
       content: Document[] | null
       summary: string | null
     },
-    finalSummary: string | null;
+    requestTweetPosting: boolean
     status: Status;
     error: string | null;
   }>(),
@@ -61,7 +68,6 @@ export const agentStateSchema = z.object({
       content: z.array(z.any()).nullable(),
       summary: z.string().nullable(),
     }).optional(),
-    finalSummary: z.string().nullable(),
     status: z.enum([
       'init',
       'fetching_main',

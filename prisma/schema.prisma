@@ -26,6 +26,15 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -49,6 +58,7 @@ model User {
   lastLoginAt   DateTime  @updatedAt
 
   chats Chat[]
+  tweet Tweet[]
 }
 
 model Chat {
@@ -62,10 +72,39 @@ model Chat {
   updatedAt DateTime @updatedAt
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tweet     Tweet[]
 
   @@unique([userId, roomId])
   @@index([userId])
   @@index([chatType])
+}
+
+enum ChatType {
+  GENERAL
+  BILL
+}
+
+model Tweet {
+  id        String      @id @default(cuid())
+  tweetId   String      @unique // The ID returned from Twitter
+  text      String      @db.Text
+  url       String
+  userId    String
+  chatId    String
+  status    TweetStatus @default(POSTED)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([chatId])
+}
+
+enum TweetStatus {
+  POSTED
+  FAILED
+  DELETED
 }
 
 model AnonymousUsage {
@@ -76,9 +115,4 @@ model AnonymousUsage {
   lastSeen  DateTime @updatedAt
 
   @@index([hash])
-}
-
-enum ChatType {
-  GENERAL
-  BILL
 }

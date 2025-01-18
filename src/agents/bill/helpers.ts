@@ -19,7 +19,7 @@ export function splitIntoChunks(text: string, chunkSize = 1000): string[] {
 }
 
 export const getAgentStateBySessionId = async (sessionId: string) => {
-  const workflow = await createBillAnalysisWorkflow()
+  const workflow = await createBillAnalysisWorkflow(sessionId)
   const workflowState = await workflow.graph.getState({
     configurable: {
       thread_id: sessionId,

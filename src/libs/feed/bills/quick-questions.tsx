@@ -4,42 +4,28 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDownIcon } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { MAX_WORDS } from "@/utils/constant";
-
-const questions = [
-  "What is this bill about?",
-  "What tax changes are proposed?",
-  "What's the bill status?",
-]
+import { quickQuestions } from "@/utils/constant";
+import { useQuickAnalystMutation } from "@/store/bills/quick-analyst";
 
 interface QuickQuestionsProps {
-  billId: string;
-  onQuestionClick: (billId: string, question: string) => void;
-  isQuickQuestionValid: boolean;
   userId: string;
   billUrl: string;
+  billId: string;
   cboUrl: string | null;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  setInput: (input: string) => void;
-  isLoading: boolean;
-  isAnswer: boolean;
-  setUserId: any
+  handleQuestionClick: (billId: string) => void;
 }
 
 export function QuickQuestions(props: QuickQuestionsProps) {
   const {
     billId,
-    onQuestionClick,
-    isQuickQuestionValid,
-    handleSubmit,
-    setInput,
-    isAnswer,
-    setUserId,
+    handleQuestionClick,
     userId,
-    isLoading
+    billUrl,
+    cboUrl,
   } = props
 
   const [isExpanded, setIsExpanded] = useState(false)
+  const [{mutate: quickAnalystMutation, isPending}] = useQuickAnalystMutation()
 
   return (
     <div className="w-full">
@@ -47,10 +33,9 @@ export function QuickQuestions(props: QuickQuestionsProps) {
         variant="outline"
         onClick={() => {
           setIsExpanded(!isExpanded)
-          setUserId(userId)
         }}
         className="w-full justify-between text-left font-normal text-sm"
-        disabled={isQuickQuestionValid}
+        disabled={isPending}
       >
         <span>Quick Questions</span>
         <motion.span
@@ -69,42 +54,29 @@ export function QuickQuestions(props: QuickQuestionsProps) {
             transition={{duration: 0.3}}
             className="mt-2 grid grid-cols-1 gap-2"
           >
-            {questions.map((question, index) => (
+            {quickQuestions.map((question, index) => (
               <motion.div
                 key={index}
                 initial={{opacity: 0, y: 10}}
                 animate={{opacity: 1, y: 0}}
                 transition={{delay: index * 0.05}}
               >
-                {
-                  isAnswer ? (
-                    <Button
-                      onClick={() => {
-                        onQuestionClick(billId, question);
-                      }}
-                      variant="ghost"
-                      className="w-full h-auto py-2 px-3 text-left justify-start items-start hover:bg-primary/5 hover:text-primary transition-all duration-200 ease-in-out text-xs"
-                      disabled={isLoading}
-                    >
-                      <span>{question}</span>
-                    </Button>
-                  ) : (
-                    <form onSubmit={handleSubmit}>
-                      <Button
-                        type="submit"
-                        onClick={() => {
-                          setInput(question + MAX_WORDS);
-                          onQuestionClick(billId, question);
-                        }}
-                        variant="ghost"
-                        className="w-full h-auto py-2 px-3 text-left justify-start items-start hover:bg-primary/5 hover:text-primary transition-all duration-200 ease-in-out text-xs"
-                        disabled={isLoading}
-                      >
-                        <span>{question}</span>
-                      </Button>
-                    </form>
-                  )
-                }
+                <Button
+                  onClick={async () => {
+                    handleQuestionClick(billId)
+                    await quickAnalystMutation({
+                      billUrl,
+                      cboUrl,
+                      sessionId: userId,
+                      message: question
+                    })
+                  }}
+                  variant="ghost"
+                  className="w-full h-auto py-2 px-3 text-left justify-start items-start hover:bg-primary/5 hover:text-primary transition-all duration-200 ease-in-out text-xs"
+                  disabled={isPending}
+                >
+                  <span>{question}</span>
+                </Button>
               </motion.div>
             ))}
           </motion.div>

@@ -52,11 +52,12 @@ type BillDetails = {
   url: string
   cboUrl: string | null
   sessionId: string
-  guestId: string
   congress: number
   internalMessages: any
   state: string
   billType: BillType
+  userId: string
+  chatId: string | undefined
 }
 
 export function BillDetails(props: BillDetails) {
@@ -69,7 +70,8 @@ export function BillDetails(props: BillDetails) {
     policy,
     cboUrl,
     sessionId,
-    guestId,
+    userId,
+    chatId,
     state,
     internalMessages,
     url: billUrl
@@ -77,7 +79,7 @@ export function BillDetails(props: BillDetails) {
   const [messageLoader, setMessagesLoader] = useState(true)
   const [isClient, setIsClient] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
-  const {voice, setVoice} = useVoicePreference(guestId)
+  const {voice, setVoice} = useVoicePreference(userId)
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -96,7 +98,7 @@ export function BillDetails(props: BillDetails) {
   } = useChat({
     api: apiRoutes.bills.agent,
     body: {
-      userId: sessionId,
+      sessionId,
       billUrl,
       loggedIn: false,
       cboUrl,
@@ -104,6 +106,8 @@ export function BillDetails(props: BillDetails) {
       billNumber,
       congress,
       billType,
+      userId,
+      chatId
     },
   })
 
@@ -261,7 +265,7 @@ export function BillDetails(props: BillDetails) {
           )}
           rows={1}
           style={{
-            minHeight: '44px',
+            minHeight: '50px',
             maxHeight: '120px',
             fontSize: '16px'
           }}

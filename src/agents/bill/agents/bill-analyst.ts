@@ -2,137 +2,113 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 import { Document } from "@langchain/core/documents";
-import { BillAnalysisState } from "@/agents/bill/state";
+import { cohereEmbedding } from "@/agents/cohere";
+import { maximalMarginalRelevance, cosineSimilarity } from "@langchain/core/utils/math";
 import { MAIN_BILL_PROMPT } from "@/agents/bill/prompts";
 import { chatAnthropic } from "@/agents/anthropic";
-import { cohereRerank } from "@/agents/cohere";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { BillAnalysisState } from "@/agents/bill/state";
 
-const CHUNK_SIZE = 3000;
-const MIN_RELEVANCE_SCORE = 0.05;
-
-interface BillSection {
-  section_number: number;
-  title: string;
-  content: string;
-  relevanceScore?: number;
-}
-
-function extractBillSections(text: string): BillSection[] {
-  const mainContent = text.split(/SECTION 1\./)[1] || text;
-
-  const sections: BillSection[] = [];
-  const sectionMatches = ('SECTION 1.' + mainContent)
-    .matchAll(/SECTION\s+(\d+)\.\s*([^\n]*)\n([\s\S]*?)(?=SECTION\s+\d+\.|$)/gi);
-
-  for (const match of sectionMatches) {
-    const content = match[3].trim();
-    if (content.length > 10) {
-      sections.push({
-        section_number: parseInt(match[1]),
-        title: match[2].trim(),
-        content: content
-      });
-    }
-  }
-  return sections;
-}
-
-function preprocessQuery(query: string): string {
-  const enhancedQuery = query.toLowerCase()
-    .replace(/^(what|tell me|explain|describe)\s+(is|about|the)?/i, '')
-    .replace(/section/g, 'SECTION')
-    .replace(/where/g, 'which section')
-    .replace(/what/g, 'which section describes')
-    .trim();
-
-  if (enhancedQuery.length < 20) {
-    return `key provisions and requirements of ${enhancedQuery}`;
-  }
-
-  return enhancedQuery;
-}
-
-const fetchAndEmbedBillTool = tool(
+export const semanticBillTool = tool(
   async ({url, query}) => {
-    try {
-      const loader = new CheerioWebBaseLoader(url, {
-        selector: "pre",
-      });
+    const embeddings = cohereEmbedding();
 
-      const docs = await loader.load();
-      const billContent = docs[0].pageContent;
+    // Load document
+    const loader = new CheerioWebBaseLoader(url, {selector: "pre"});
+    const [doc] = await loader.load();
+    const content = doc.pageContent;
 
-      const sections = extractBillSections(billContent);
-      const enhancedQuery = preprocessQuery(query);
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1000,
+      chunkOverlap: 100,
+      separators: ["SECTION", "\n\n", "\n", ". "]
+    });
 
-      const yamlDocs = sections.map(section => {
-        const enrichedContent = `${section.title}\n${section.content}`;
-        return `
-section_number: ${section.section_number}
-title: ${section.title}
-content: |
-  ${enrichedContent.replace(/\n/g, '\n  ')}`.trim();
-      });
+    const chunks = await splitter.createDocuments([content]);
 
-      const rerankedDocs = await cohereRerank.rerank(
-        yamlDocs,
-        enhancedQuery,
-        {
-          model: "rerank-v3.5",
-          topN: yamlDocs.length,
-          maxChunksPerDoc: Math.ceil(CHUNK_SIZE / 512)
-        });
+    const queryEmbedding = await embeddings.embedQuery(query);
+    const chunkEmbeddings = await embeddings.embedDocuments(
+      chunks.map(chunk => chunk.pageContent)
+    );
 
-      let relevantSections = rerankedDocs
-        .filter(doc => doc.relevanceScore > MIN_RELEVANCE_SCORE)
-        .map(doc => ({
-          ...sections[doc.index],
-          relevanceScore: doc.relevanceScore
-        }));
+    const similarities = cosineSimilarity(
+      [queryEmbedding],
+      chunkEmbeddings
+    )[0];
 
-      if (relevantSections.length === 0 && rerankedDocs.length > 0) {
-        const topResult = rerankedDocs[0];
-        relevantSections = [{
-          ...sections[topResult.index],
-          relevanceScore: topResult.relevanceScore
-        }];
-      }
+    const exactMatches = chunks.map((chunk, idx) => ({
+      chunk,
+      index: idx,
+      similarity: similarities[idx],
+      exactMatch: chunk.pageContent.toLowerCase().includes(query.toLowerCase())
+    })).filter(item => item.exactMatch);
+
+    const mmrIndexes = maximalMarginalRelevance(
+      queryEmbedding,
+      chunkEmbeddings,
+      0.7,
+      5    // Select top 5 chunks
+    );
+
+    const selectedIndexes = [
+      ...new Set([
+        ...exactMatches.map(m => m.index),
+        ...mmrIndexes
+      ])
+    ].slice(0, 5); // Keep top 5 total
+
+    const relevantSections = selectedIndexes.map(idx => {
+      const chunk = chunks[idx];
+      const sectionMatch = chunk.pageContent.match(/SECTION (\d+)/i);
 
       return {
-        documents: [new Document({pageContent: billContent})],
-        relevantSections,
-        enhancedQuery
+        content: chunk.pageContent,
+        section_number: sectionMatch ? sectionMatch[1] : `${idx + 1}`,
+        relevanceScore: similarities[idx],
+        exactMatch: chunk.pageContent.toLowerCase().includes(query.toLowerCase())
       };
-    } catch (error: any) {
-      console.error("Error in fetch and embed:", error);
-      throw new Error(`Failed to fetch bill content: ${error.message}`);
-    }
+    }).sort((a, b) => {
+      // Prioritize exact matches, then by relevance score
+      if (a.exactMatch && !b.exactMatch) return -1;
+      if (!a.exactMatch && b.exactMatch) return 1;
+      return b.relevanceScore - a.relevanceScore;
+    });
+
+    return {
+      relevantSections,
+      documents: [new Document({
+        pageContent: relevantSections.map(s => s.content).join('\n\n'),
+        metadata: { url }
+      })],
+      enhancedQuery: query
+    };
   },
   {
-    name: "fetch_and_embed_bill",
-    description: "Fetches bill content and finds relevant sections using query-based reranking",
+    name: "semantic_bill_tool",
+    description: "Analyzes bill content using MMR for diverse and relevant results",
     schema: z.object({
-      url: z.string().describe("The URL of the bill to fetch"),
-      query: z.string().describe("The specific query about the bill content")
+      url: z.string().describe("The URL of the bill to analyze"),
+      query: z.string().describe("The query about the bill content")
     })
   }
 );
 
-export async function billAnalystAgent(state: typeof BillAnalysisState.State) {
+export async function billAnalystAgent(state: typeof BillAnalysisState.State): Promise<typeof BillAnalysisState.State> {
   if (!state.analysisState.mainBill?.url || !state.analysisState.prompt) {
     return state;
   }
 
   try {
-    const result = await fetchAndEmbedBillTool.invoke({
+    const result = await semanticBillTool.invoke({
       url: state.analysisState.mainBill.url,
       query: state.analysisState.prompt
     });
 
     const relevantContent = result.relevantSections
-      .map((section: BillSection) =>
-        `Section ${section.section_number}: ${section.title}\n` +
-        `Relevance: ${Math.round((section.relevanceScore || 0) * 100)}%\n\n` +
+      .map((section: any) =>
+        `Section ${section.section_number}\n` +
+        `Relevance: ${Math.round(section.relevanceScore * 100)}%\n` +
+        `Exact Match: ${section.exactMatch ? "Yes" : "No"}\n\n` +
         `${section.content}`
       )
       .join('\n\n' + '-'.repeat(50) + '\n\n');
@@ -149,18 +125,18 @@ export async function billAnalystAgent(state: typeof BillAnalysisState.State) {
     });
 
     return {
+      ...state,
       analysisState: {
         ...state.analysisState,
         mainBill: {
           ...state.analysisState.mainBill,
           content: result.documents,
-          summary: analysis.content
+          summary: analysis.content as string
         },
-        finalSummary: analysis.content,
         status: 'analyzing_main'
       },
-      messages: [...state.messages, analysis]
-    } as typeof BillAnalysisState.State;
+    }
+
   } catch (error: any) {
     console.error("Error in bill analyst agent:", error);
     return {

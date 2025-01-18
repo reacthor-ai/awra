@@ -8,7 +8,7 @@ import { chatAnthropic } from "@/agents/anthropic";
 import { splitIntoChunks } from "@/agents/bill/helpers";
 import { BillAnalysisState } from "@/agents/bill/state";
 
-const fetchAndAnalyzePDFTool = tool(
+export const fetchAndAnalyzePDFTool = tool(
   async ({url}) => {
     try {
       const response = await fetch(url);
@@ -69,9 +69,10 @@ const fetchAndAnalyzePDFTool = tool(
   }
 );
 
-export async function billCostEstimateAgent(state: typeof BillAnalysisState.State) {
+export async function billCostEstimateAgent(state: typeof BillAnalysisState.State): Promise<typeof BillAnalysisState.State> {
   if (!state.analysisState.costEstimate?.url) {
     return {
+      ...state,
       analysisState: {
         ...state.analysisState,
         status: state.analysisState.status
@@ -82,11 +83,10 @@ export async function billCostEstimateAgent(state: typeof BillAnalysisState.Stat
 
   if (state.analysisState.costEstimate.content && state.analysisState.costEstimate.summary) {
     return {
+      ...state,
       analysisState: {
         ...state.analysisState,
-        status: 'analyzing'
       },
-      messages: state.messages
     };
   }
 
@@ -111,19 +111,15 @@ ${chunk.content}`)
     });
 
     return {
+      ...state,
       analysisState: {
         ...state.analysisState,
         costEstimate: {
           ...state.analysisState.costEstimate,
-          content: [new LangChainDocument({pageContent: result.fullContent})],
-          summary: analysis.content
+          content: result.documents,
+          summary: analysis.content as string
         },
-        status: 'analyzing'
       },
-      messages: [
-        ...state.messages,
-        analysis
-      ]
     };
   } catch (error: any) {
     console.error("Error in cost estimate analysis:", error);
@@ -132,7 +128,6 @@ ${chunk.content}`)
         ...state.analysisState,
         costEstimate: {
           ...state.analysisState.costEstimate,
-          error: error.message
         },
         status: state.analysisState.status
       },

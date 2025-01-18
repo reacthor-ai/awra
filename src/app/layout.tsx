@@ -6,6 +6,7 @@ import { AuthProvider } from "@/provider/AuthProvider";
 import NextTopLoader from 'nextjs-toploader';
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { ThemeProvider } from "@/provider/ThemeProvider";
+import { Toaster } from "@/components/ui/toaster"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +22,8 @@ export const metadata: Metadata = {
   title: "awra",
 };
 
-export default function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout(props: Readonly<{ children: React.ReactNode }>) {
+  const {children} = props
   return (
     <html lang="en" suppressHydrationWarning>
     <body
@@ -46,8 +48,8 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
       zIndex={1600}
       showAtBottom={false}
     />
-    <ProviderInitializer>
-      <AuthProvider>
+    <AuthProvider>
+      <ProviderInitializer>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -55,14 +57,15 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
           disableTransitionOnChange
         >
           {children}
+          <Toaster/>
         </ThemeProvider>
-      </AuthProvider>
-      {
-        process.env.NODE_ENV === 'production' && (
-          <GoogleAnalytics gaId={process.env.GOOGLE_ID ?? ''}/>
-        )
-      }
-    </ProviderInitializer>
+        {
+          process.env.NODE_ENV === 'production' && (
+            <GoogleAnalytics gaId={process.env.GOOGLE_ID ?? ''}/>
+          )
+        }
+      </ProviderInitializer>
+    </AuthProvider>
     </body>
     </html>
   );

@@ -12,12 +12,8 @@ import { transformRoomId } from "@/utils/transformRoomId"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AnimatePresence, motion } from "framer-motion"
 import { QuickQuestions } from "./quick-questions"
-import { Message, useChat } from "ai/react"
-import { apiRoutes } from "@/utils/api-links"
-import { useGetAIMessages } from "@/store/ai/messages";
-import { MAX_WORDS } from "@/utils/constant";
 import { Separator } from "@/components/ui/separator";
-import { ChatContentMarkdown } from "@/components/ui/chat-content-markdown";
+import { useQuickAnalystMutation } from "@/store/bills/quick-analyst";
 
 interface CardHeights {
   [key: string]: number;
@@ -28,40 +24,12 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
   const [cardHeights, setCardHeights] = useState<CardHeights>({})
   const [flippedBillId, setFlippedBillId] = useState<string | null>(null)
   const frontCardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
-  const [userId, setUserId] = useState<string>('')
-  const [billUrl, setBillUrls] = useState<string>('')
-  const [cboUrl, setCboUrls] = useState<string | null>(null)
   const [currentBillId, setCurrentBillId] = useState<string | null>(null)
-  const [answer, setAnswer] = useState<string | null>(null);
-  const [q, setQuestion] = useState<string | null>(null)
-  const {isLoadingAIMessages, messages, refetchAIMessages} = useGetAIMessages(userId, false)
-
-  const {
-    handleSubmit,
-    setInput,
-    setMessages,
-    messages: aiChatMessages,
-    isLoading
-  } = useChat({
-    api: apiRoutes.bills.agent,
-    body: {
-      userId,
-      billUrl,
-      loggedIn: false,
-      cboUrl,
-      voiceType: 'analyst'
-    },
-  })
+  const [{data, isPending: isLoading}] = useQuickAnalystMutation()
 
   const resetCardState = useCallback(() => {
-    setMessages([])
-    setAnswer(null)
-    setQuestion(null)
-    setUserId('')
     setCurrentBillId(null)
-    setBillUrls('')
-    setCboUrls(null)
-  }, [setMessages])
+  }, [])
 
   const updateCardHeight = (billId: string) => {
     const frontCard = frontCardRefs.current[billId]
@@ -87,31 +55,7 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
     return () => window.removeEventListener('resize', updateAllHeights)
   }, [bills])
 
-  const getAnswer = useCallback((question: string | null, chatMessages: Message[] | undefined) => {
-    if (!chatMessages) return null
-
-    if (chatMessages.length <= 0 || !question) {
-      setAnswer(null)
-    }
-
-    const currentQuestion = question + MAX_WORDS
-    const questionIdx = chatMessages.findIndex((currMessage) =>
-      currMessage.role === "user" && currMessage.content === currentQuestion
-    )
-
-    // if we find the message, the next one must be an answer.
-    if (questionIdx !== -1) {
-      setAnswer(chatMessages[questionIdx + 1].content)
-    }
-
-  }, [messages, userId, q, currentBillId, resetCardState])
-
-  useEffect(() => {
-    getAnswer(q, messages)
-  }, [getAnswer])
-
-  const handleQuestionClick = async (billId: string, question: string) => {
-    // If there's a different card already flipped, reset its state
+  const handleQuestionClick = async (billId: string) => {
     if (flippedBillId && flippedBillId !== billId) {
       resetCardState()
     }
@@ -119,14 +63,6 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
     updateCardHeight(billId)
     setFlippedBillId(billId)
     setCurrentBillId(billId)
-
-    const bill = bills.find(b => transformRoomId(b.type, b.number) === billId)
-    if (bill) {
-      setUserId(bill.sessionId)
-      setBillUrls(bill.billUrl || '')
-      setCboUrls(bill.cboUrl || null)
-      setQuestion(question)
-    }
   }
 
   const handleCardFlipBack = useCallback((billId: string) => {
@@ -206,23 +142,21 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
                     </CardContent>
 
                     <CardFooter className="p-4 pt-0 flex flex-col gap-4">
-                      <QuickQuestions
-                        billId={billId}
-                        onQuestionClick={handleQuestionClick}
-                        isQuickQuestionValid={!bill.textVersionsExist}
-                        userId={bill.sessionId}
-                        billUrl={bill.billUrl || ''}
-                        cboUrl={bill.cboUrl || null}
-                        handleSubmit={handleSubmit}
-                        setInput={setInput}
-                        isLoading={isLoading}
-                        setUserId={setUserId}
-                        isAnswer={!!answer}
-                      />
+                      {
+                        bill.textVersionsExist && (
+                          <QuickQuestions
+                            userId={bill.sessionId}
+                            billUrl={bill.billUrl}
+                            cboUrl={bill.cboUrl || null}
+                            handleQuestionClick={handleQuestionClick}
+                            billId={billId}
+                          />
+                        )
+                      }
                       <Button
                         variant={bill.textVersionsExist ? "default" : "secondary"}
                         size="sm"
-                        disabled={!bill.textVersionsExist}
+                        disabled={!bill.textVersionsExist || isLoading}
                         onClick={() => router.push(
                           navigationLinks.billDetails({
                             billNumber: bill.number,
@@ -276,16 +210,9 @@ export function BillGridComponent({bills, state}: { bills: BillModified[], state
                           exit={{opacity: 0}}
                           className="flex flex-col items-center"
                         >
-                          {aiChatMessages.length > 0 ? (
-                            <div className="text-lg font-medium mb-4 text-center overflow-y-auto max-h-[30vh]">
-                              <ChatContentMarkdown content={aiChatMessages[aiChatMessages.length - 1].content}/>
-                            </div>
-                          ) : (
-                            <div className="text-lg font-medium mb-4 text-center overflow-y-auto max-h-[30vh]">
-                              <ChatContentMarkdown
-                                content={(billId === currentBillId && answer) ? answer : "No response yet"}/>
-                            </div>
-                          )}
+                          <div className="text-lg font-medium mb-4 text-center overflow-y-auto max-h-[30vh]">
+                            {data?.result?.content ?? "Nothing yet, check back later"}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
