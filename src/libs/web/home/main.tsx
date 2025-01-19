@@ -126,7 +126,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-2">
                   <p className="text-gray-300 text-xs md:text-sm">
-                    Voice your concerns about legislation through Awra. We'll help craft and share your perspective with Congress on X.
+                    Voice your concerns about legislation through Awra. We&lsquo;ll help craft and share your perspective with Congress on X.
                   </p>
                 </CardContent>
               </Card>

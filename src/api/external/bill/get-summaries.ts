@@ -1,7 +1,7 @@
 import { CACHE_TAG_PREFIX } from "@/api/utils/constant";
 import { validateBillParams } from "@/api/external/bill/utils";
 
-interface GetSummariesParams {
+export interface GetSummariesParams {
   congress: number;
   billType: string;
   billNumber: number;

@@ -8,7 +8,7 @@ export async function concernCollectionAgent(
 ): Promise<typeof TwitterEngagementState.State> {
   const representativesList = state.engagementState.inputInfo?.bill?.cosponsors
     .map((rep, index) => `${index + 1}. ${rep.fullName} (${rep.state}, ${rep.party})`)
-    .join('\n');'.'
+    .join('\n');
 
   try {
     if (isDirectToConcernCollectionAgent(state)) {

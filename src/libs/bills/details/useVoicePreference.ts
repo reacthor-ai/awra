@@ -27,7 +27,7 @@ export function useVoicePreference(guestId: string) {
     } catch (error) {
       setVoice('analyst')
     }
-  }, []);
+  }, [guestId]);
 
   return {
     voice,
