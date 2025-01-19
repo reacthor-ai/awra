@@ -5,7 +5,6 @@ import { chatAnthropic } from "@/agents/anthropic";
 import { billChatPrompt, BillPromptParams } from "@/agents/bill/prompts";
 import { saveMessages } from "@/app/(protected)/dashboard/c/api/bills/ai/bill-agent/save-message";
 import { getCosponsors } from "@/api/external/bill/get-bill-by-sponsor";
-import { Document } from "@langchain/core/documents";
 
 export async function POST(req: NextRequest) {
   try {

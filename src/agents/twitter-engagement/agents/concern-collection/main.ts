@@ -69,6 +69,9 @@ export async function concernCollectionAgent(
               
               Do not proceed to tweet suggestions until you have a clear understanding of their concerns. Focus on engaging in a meaningful discussion about the bill and its implications.
               ****this will help the user come up with tweet suggestions*****
+              
+              AT THE END - ONCE THEY UNDERSTAND THE BILL THEY SHOULD SAY: 'CRAFT A TWEET for me' and explain
+              in details what they'd like to focus on.
               `
             }
           },
