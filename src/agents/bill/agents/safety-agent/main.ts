@@ -13,7 +13,6 @@ export async function billSafetyAgent(state: typeof BillAnalysisState.State): Pr
     const result = await safetyCheck.invoke({
       prompt: state.analysisState.prompt
     });
-
     let updatedState: typeof BillAnalysisState.State;
     if (result && result.status === "UNSAFE") {
       updatedState = {

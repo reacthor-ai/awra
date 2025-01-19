@@ -131,6 +131,13 @@ export function BillDetails(props: BillDetails) {
     setMessagesLoader(false)
   }, [isLoading, internalMessages, aiChatMessages, setMessages])
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   const handleVoiceToggle = useCallback((newVoice: VoiceType) => {
     setVoice(newVoice)
   }, [setVoice])
@@ -230,21 +237,21 @@ export function BillDetails(props: BillDetails) {
                           onClick={() => {
                             setInput(question)
                           }}
-                          className="w-full h-full bg-background border rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 text-left group"
+                          className="w-full h-full bg-background border rounded-2xl p-4 text-left group"
                         >
                           <div className="flex flex-col gap-4">
                             <div
                               className={`w-8 h-8 rounded-xl flex items-center justify-center ${q.question === 'Post on X' ? 'bg-white' : ''}`}>
-                              <q.icon className="h-6 w-6"/>
+                              <q.icon className="h-6 w-6 text-foreground"/>
                             </div>
 
                             <div className="flex flex-col gap-1">
-                <span className="font-semibold">
-                  {q.question}
-                </span>
-                              <span className="text-sm">
-                  {q.description}
-                </span>
+                              <span className="font-semibold text-foreground">
+                                {q.question}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {q.description}
+                              </span>
                             </div>
                           </div>
                         </button>
@@ -272,7 +279,10 @@ export function BillDetails(props: BillDetails) {
         <textarea
           value={input}
           onChange={handleInputChange}
-          placeholder="Ask about this bill..."
+          onKeyDown={handleKeyDown}
+          placeholder={
+            messages.length <= 0 ? "How can Awra help you today?" : 'Reply to Awra...'
+          }
           className={cn(
             "w-full resize-none rounded-xl border border-neutral-200",
             "bg-background backdrop-blur-sm px-4 py-2.5",
@@ -283,7 +293,7 @@ export function BillDetails(props: BillDetails) {
           )}
           rows={1}
           style={{
-            minHeight: '50px',
+            minHeight: '70px',
             maxHeight: '120px',
             fontSize: '16px'
           }}

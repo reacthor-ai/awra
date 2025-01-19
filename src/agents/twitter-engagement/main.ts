@@ -16,7 +16,6 @@ export async function createTwitterEngagementWorkflow() {
   const checkpointer = new MemorySaver();
   const workflow = new StateGraph(TwitterEngagementState);
 
-  // Add all nodes
   workflow
     .addNode("collect_concern", concernCollectionAgent)
     .addNode("analyze_cosponsors", representativeSelectionAgent)
