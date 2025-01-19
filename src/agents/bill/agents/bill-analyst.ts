@@ -13,17 +13,15 @@ export const semanticBillTool = tool(
   async ({url, query}) => {
     const embeddings = cohereEmbedding();
 
-    // Load document
     const loader = new CheerioWebBaseLoader(url, {selector: "pre"});
     const [doc] = await loader.load();
     const content = doc.pageContent;
 
-    // Split into much larger sections that preserve context
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 20000,  // Much larger chunks
-      chunkOverlap: 2000, // More overlap
+      chunkSize: 20000,
+      chunkOverlap: 2000,
       separators: [
-        "TITLE ", // Major document divisions
+        "TITLE ",
         "SECTION ",
         "\n\nSEC. ",
         "\n\n(a)",
@@ -35,19 +33,16 @@ export const semanticBillTool = tool(
 
     const chunks = await splitter.createDocuments([content]);
 
-    // Get embeddings
     const queryEmbedding = await embeddings.embedQuery(query);
     const chunkEmbeddings = await embeddings.embedDocuments(
       chunks.map(chunk => chunk.pageContent)
     );
 
-    // Calculate similarities
     const similarities = cosineSimilarity(
       [queryEmbedding],
       chunkEmbeddings
     )[0];
 
-    // Get sections with exact keyword matches
     const exactMatches = chunks.filter((chunk, idx) => {
       const hasMatch = chunk.pageContent.toLowerCase().includes(query.toLowerCase());
       return hasMatch;
@@ -58,15 +53,13 @@ export const semanticBillTool = tool(
       exactMatch: true
     }));
 
-    // If we have exact matches, send more context
     const contextSize = exactMatches.length > 0 ? 20 : 10;
 
-    // Use MMR to select additional diverse sections
     const mmrIndexes = maximalMarginalRelevance(
       queryEmbedding,
       chunkEmbeddings,
       0.7,
-      contextSize  // Send more context to Claude
+      contextSize
     );
 
     const relevantSections = [
@@ -79,19 +72,17 @@ export const semanticBillTool = tool(
       }))
     ];
 
-    // Sort by section number for coherence
     relevantSections.sort((a, b) => {
       const aNum = parseInt(a.section) || 0;
       const bNum = parseInt(b.section) || 0;
       return aNum - bNum;
     });
 
-    // Include bill metadata
     const metadata = {
       url,
       totalSections: chunks.length,
       queryMatchSections: exactMatches.length,
-      contentPreview: content.substring(0, 1000) // First 1000 chars for context
+      contentPreview: content.substring(0, 1000)
     };
 
     return {
@@ -105,7 +96,7 @@ export const semanticBillTool = tool(
   },
   {
     name: "semantic_bill_tool",
-    description: "Analyzes bill content leveraging Claude's large context window",
+    description: "Analyzes bill content leveraging using MMR for diverse and relevant results",
     schema: z.object({
       url: z.string().describe("The URL of the bill to analyze"),
       query: z.string().describe("The query about the bill content")
