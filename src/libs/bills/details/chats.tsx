@@ -67,10 +67,6 @@ const ChatMessage = memo(({role, content, voice}: {
           <AvatarFallback>U</AvatarFallback>
         ) : (
           <>
-            <AvatarImage
-              src={voice === 'uncleSam' ? '/uncle-sam-avatar.jpg' : '/analyst-avatar.jpg'}
-              alt={voice === 'uncleSam' ? "Uncle Sam" : "Analyst"}
-            />
             <AvatarFallback>{voice === 'uncleSam' ? "US" : "A"}</AvatarFallback>
           </>
         )}
@@ -162,10 +158,6 @@ const ChatContainer = memo((props: {
                 className="flex w-full gap-3 sm:gap-4"
               >
                 <Avatar className="h-8 w-8 sm:h-10 sm:w-10 bg-primary">
-                  <AvatarImage
-                    src={voice === 'uncleSam' ? '/uncle-sam-avatar.jpg' : '/analyst-avatar.jpg'}
-                    alt={voice === 'uncleSam' ? "Uncle Sam" : "Analyst"}
-                  />
                   <AvatarFallback>{voice === 'uncleSam' ? "US" : "A"}</AvatarFallback>
                 </Avatar>
                 <ThinkingIndicator/>

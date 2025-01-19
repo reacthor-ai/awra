@@ -1,18 +1,13 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { signIn } from 'next-auth/react'
 import { useAuthSignOut } from "@/hooks/use-auth-signout";
-import { clearGuestData } from "@/lib/guestDb";
-import { RemainingChatsCard } from "@/libs/settings/remaining-chat";
 
 type SettingsProps = {
-  remainingChat: number | null
-  isGuest: boolean
-  name: string
+  email: string
 }
 
-export function Settings({remainingChat, isGuest, name}: SettingsProps) {
+export function Settings({email}: SettingsProps) {
   const {
     signOut
   } = useAuthSignOut()
@@ -23,40 +18,13 @@ export function Settings({remainingChat, isGuest, name}: SettingsProps) {
           <h1 className="text-2xl font-semibold">Settings</h1>
         </div>
       </header>
-      {
-        isGuest ? (
-          <>
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-2 text-center">Sign in</h2>
-              <p className="text-gray-600 mb-4 text-center">
-                Connect your Google account to access additional chats.
-              </p>
-              <Button
-                className="w-full py-2 px-4 bg-white hover:bg-gray-50 text-gray-800 font-semibold border border-gray-300 rounded-lg shadow-sm flex items-center justify-center transition-colors duration-300 ease-in-out"
-                onClick={async () => {
-                  await Promise.all([
-                    signIn('google'),
-                    clearGuestData()
-                  ])
-                }}
-              >
-                Sign in with Google
-              </Button>
-            </section>
-          </>
-        ) : (
-          <>
-            Logged in as {name}
 
-            <br/>
-            <Button
-              onClick={() => signOut()}
-              variant="ghost">Log out?</Button>
-          </>
-        )
-      }
+      Logged in as {email}
 
-      <RemainingChatsCard remainingChat={remainingChat} />
+      <br/>
+      <Button
+        onClick={() => signOut()}
+        variant="ghost">Log out?</Button>
     </div>
   )
 }

@@ -1,10 +1,14 @@
 export const apiRoutes = {
+  user: {
+    updateState: '/dashboard/c/api/update-state',
+  },
   bills: {
-    getBills: '/c/api/bills/get-bills',
-    getBillDetails: '/c/api/bills/get-bill-details',
-    agent: '/c/api/bills/ai/bill-agent',
+    getBills: '/dashboard/c/api/bills/get-bills',
+    getBillDetails: '/dashboard/c/api/bills/get-bill-details',
+    agent: '/dashboard/c/api/bills/ai/bill-agent',
     ai: {
-      getAIMessages: '/c/api/bills/ai/messages'
+      getAIMessages: '/dashboard/c/api/bills/ai/messages',
+      getQuickAnalyst: '/dashboard/c/api/bills/ai/bill-quick-analysis',
     }
   },
 }

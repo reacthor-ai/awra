@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Info, SendHorizontal } from 'lucide-react'
+import { ArrowLeft, DollarSign, Folder, Group, PersonStanding, SendHorizontal } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { apiRoutes } from "@/utils/api-links"
@@ -16,30 +16,37 @@ import { useVoicePreference } from "@/libs/bills/details/useVoicePreference"
 import { Separator } from "@/components/ui/separator";
 import { BillType } from "@/types/bill-details";
 import { ChatContainer } from "@/libs/bills/details/chats";
+import { XLogo } from "@/components/ui/XLogo";
 
 const commonQuestions = [
   {
+    id: 5,
+    question: "Post on X",
+    icon: XLogo,
+    description: "Voice your concerns about this bill"
+  },
+  {
     id: 1,
     question: "Summarize this bill",
-    icon: Info,
+    icon: Folder,
     description: "Get a plain-language explanation"
   },
   {
     id: 2,
     question: "Tax implications",
-    icon: Info,
+    icon: DollarSign,
     description: "Impact on your taxes"
   },
   {
     id: 3,
     question: "State impact",
-    icon: Info,
+    icon: PersonStanding,
     description: "Effects on your state"
   },
   {
     id: 4,
     question: "Co Sponsors",
-    icon: Info,
+    icon: Group,
     description: "Who co-sponsored this bill?"
   },
 ]
@@ -52,11 +59,12 @@ type BillDetails = {
   url: string
   cboUrl: string | null
   sessionId: string
-  guestId: string
   congress: number
   internalMessages: any
   state: string
   billType: BillType
+  userId: string
+  chatId: string | undefined
 }
 
 export function BillDetails(props: BillDetails) {
@@ -69,7 +77,8 @@ export function BillDetails(props: BillDetails) {
     policy,
     cboUrl,
     sessionId,
-    guestId,
+    userId,
+    chatId,
     state,
     internalMessages,
     url: billUrl
@@ -77,7 +86,7 @@ export function BillDetails(props: BillDetails) {
   const [messageLoader, setMessagesLoader] = useState(true)
   const [isClient, setIsClient] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
-  const {voice, setVoice} = useVoicePreference(guestId)
+  const {voice, setVoice} = useVoicePreference(userId)
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -96,7 +105,7 @@ export function BillDetails(props: BillDetails) {
   } = useChat({
     api: apiRoutes.bills.agent,
     body: {
-      userId: sessionId,
+      sessionId,
       billUrl,
       loggedIn: false,
       cboUrl,
@@ -104,6 +113,8 @@ export function BillDetails(props: BillDetails) {
       billNumber,
       congress,
       billType,
+      userId,
+      chatId
     },
   })
 
@@ -119,6 +130,13 @@ export function BillDetails(props: BillDetails) {
     }
     setMessagesLoader(false)
   }, [isLoading, internalMessages, aiChatMessages, setMessages])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
 
   const handleVoiceToggle = useCallback((newVoice: VoiceType) => {
     setVoice(newVoice)
@@ -206,29 +224,40 @@ export function BillDetails(props: BillDetails) {
                 <h2 className="text-lg sm:text-xl font-medium text-center mb-6">
                   What would you like to know?
                 </h2>
-                <div className="grid gap-3 sm:gap-4">
-                  {commonQuestions.map((q) => (
-                    <form key={q.id} onSubmit={handleSubmit}>
-                      <Button
-                        key={q.id}
-                        variant="outline"
-                        type="submit"
-                        onClick={() => {
-                          setInput(q.question + ": " + q.description + " My state: " + state)
-                        }}
-                        className="w-full flex items-center gap-3 p-4 h-auto text-left rounded-xl"
-                      >
-                        <q.icon className="h-5 w-5 text-blue-500 flex-shrink-0"/>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-sm sm:text-base">{q.question}</span>
-                          <span className="text-xs sm:text-sm text-neutral-600">
-                        {q.description}
-                      </span>
-                        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-white">
+                  {commonQuestions.map((q) => {
+                    const question = q.question === 'Post on X' ?
+                      `${q.question}: ${q.description}, My state: ${state}, Generate a tweet` :
+                      `${q.question}: ${q.description}, My state: ${state}`
 
-                      </Button>
-                    </form>
-                  ))}
+                    return (
+                      <form key={q.id} onSubmit={handleSubmit}>
+                        <button
+                          type="submit"
+                          onClick={() => {
+                            setInput(question)
+                          }}
+                          className="w-full h-full bg-background border rounded-2xl p-4 text-left group"
+                        >
+                          <div className="flex flex-col gap-4">
+                            <div
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center ${q.question === 'Post on X' ? 'bg-white' : ''}`}>
+                              <q.icon className="h-6 w-6 text-foreground"/>
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-foreground">
+                                {q.question}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {q.description}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      </form>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -250,7 +279,10 @@ export function BillDetails(props: BillDetails) {
         <textarea
           value={input}
           onChange={handleInputChange}
-          placeholder="Ask about this bill..."
+          onKeyDown={handleKeyDown}
+          placeholder={
+            messages.length <= 0 ? "How can Awra help you today?" : 'Reply to Awra...'
+          }
           className={cn(
             "w-full resize-none rounded-xl border border-neutral-200",
             "bg-background backdrop-blur-sm px-4 py-2.5",
@@ -261,7 +293,7 @@ export function BillDetails(props: BillDetails) {
           )}
           rows={1}
           style={{
-            minHeight: '44px',
+            minHeight: '70px',
             maxHeight: '120px',
             fontSize: '16px'
           }}

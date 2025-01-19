@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { navigationLinks } from "@/utils/nav-links";
 import Image from 'next/image';
+import { useUpdateStateMutation } from "@/store/user/update-state";
+import { Loader } from "lucide-react";
 
 type StateSelectionPageProps = {
   states: Record<string, string>;
@@ -16,15 +18,27 @@ const StateSelection = ({states}: StateSelectionPageProps) => {
   const [selectedStateAbbreviation, setSelectedStateAbbreviation] = useState("");
   const router = useRouter()
 
+  const [{
+    mutate: updateStateMutation,
+    isPending,
+    data
+  }] = useUpdateStateMutation()
+
   const handleStateSelect = (value: string) => {
     setSelectedStateAbbreviation(value);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedStateAbbreviation) {
-      router.push(navigationLinks.content({
-        stateId: selectedStateAbbreviation
-      }))
+      await updateStateMutation({
+        state: selectedStateAbbreviation
+      }, {
+        onSuccess: () => {
+          router.push(navigationLinks.content({
+            stateId: selectedStateAbbreviation
+          }))
+        }
+      })
     }
   };
 
@@ -75,7 +89,10 @@ const StateSelection = ({states}: StateSelectionPageProps) => {
             onClick={handleContinue}
             disabled={!selectedStateAbbreviation}
           >
-            Explore Bills
+            {isPending && (
+              <Loader className="animate-spin mr-2" size={16}/>
+            )}
+            {isPending ? 'Saving...' : 'Explore Bills'}
           </Button>
           <p className="text-sm text-gray-500">
             Disclaimer: This website is not affiliated with the government. Output by the model may be inaccurate.

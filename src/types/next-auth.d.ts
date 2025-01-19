@@ -5,6 +5,6 @@ declare module "next-auth" {
   interface Session {
     user: {}
       & DefaultSession["user"]
-      & Pick<AwraUser, 'isGuest' | 'guestId'>
+      & AwraUser
   }
 }
