@@ -1,28 +1,20 @@
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { VoiceType } from "@/types/ai";
 import { Cosponsor } from "@/types/bill-sponsors";
-import { EngagementStatus, TwitterEngagementState } from "@/agents/twitter-engagement/state";
+import { EngagementStatus } from "@/agents/twitter-engagement/state";
 
-export const ERROR_HANDLING_PROMPT = ChatPromptTemplate.fromMessages([
-  ["system", `You are a helpful assistant explaining why certain questions cannot be processed.
-Your task is to provide clear, professional explanations for why a question was deemed inappropriate or out of scope.
+export   const BILL_ANALYSIS_QUESTION =
+  `Analyze this bill and present the key information in a clear, digestible format:
 
-Guidelines:
-- Maintain a professional and respectful tone
-- Explain the boundaries of the system
-- Suggest alternative approaches when possible
-- Keep responses concise and clear
-
-Current time: {current_time}`],
-  new MessagesPlaceholder("chat_history"),
-  ["human", `The following question could not be processed:
-
-User's question: {user_query}
-
-Error reason: {error}
-
-Please provide a clear explanation to the user.`]
-]);
+    Key points to cover:
+    - Major changes and impacts
+    - Economic effects on communities/businesses
+    - Timeline and milestones
+    - Problems addressed vs current policies
+    - Main arguments pro/con
+    - Notable public discussions
+    
+    Format your response in 2-3 paragraphs, highlighting the most tweet-worthy aspects. Keep each point concise but informative. Your analysis will be shared directly with users to help them craft informed tweets.`;
 
 export const MAIN_BILL_PROMPT = ChatPromptTemplate.fromMessages([
   ["system", `You are a legislative analyst who provides clear, direct answers about bills.
@@ -81,9 +73,9 @@ Citizen's question: {user_query}`],
 ]);
 
 export const ANALYST_CHAT_PROMPT = ChatPromptTemplate.fromMessages([
-  ["system", `You are a legislative specialist who explains bills to citizens. When you receive an expert bill analysis, your role is to:
+  ["system", `You are a legislative specialist who makes complex bills easy to understand. Use markdown formatting and emojis to create engaging responses that match the user's needs - be concise for simple questions and detailed for complex ones.
 
-  Style guide:
+Style guide:
 - Use headers, lists, and emphasis when helpful
 - Include relevant emojis
 - Keep language clear and direct
@@ -91,45 +83,14 @@ export const ANALYST_CHAT_PROMPT = ChatPromptTemplate.fromMessages([
 - Include block quotes for significant excerpts
 - Focus on answering the specific question
 - Add context only when needed
-- Format links properly with markdown syntax
-
-1. TRUST AND USE THE ANALYSIS PROVIDED
-   - The analysis comes from thorough bill review
-   - Do not contradict or question the analysis
-   - Do not invent limitations on what you can discuss
-
-2. ANSWER DIRECTLY
-   - If the analysis has a clear answer, use it
-   - Don't ask for clarification when the answer is clear
-   - Don't suggest alternative questions when you have the answer
-
-3. BUILD ON THE ANALYSIS
-   - Explain implications in plain language
-   - Add helpful context when relevant
-   - Define technical terms if needed
-
-4. STAY FOCUSED
-   - Answer the specific question asked
-   - Use the information you have
-   - Don't invent restrictions or limitations
-
-Format responses with:
-- Clear direct answers first
-- Supporting details from the analysis
-- Plain language explanations
-- Practical implications when relevant
-
-Remember: Your primary job is to help citizens understand the analysis, not to question or redirect it.
 
 Current time: {current_time}`],
   new MessagesPlaceholder("chat_history"),
-  ["human", `Expert Bill Analysis: {bill_analysis}
-Cost Information: {cost_info}
-Co-sponsors: {cosponsors}
+  ["human", `Bill analysis: {bill_analysis}
+Cost info: {cost_info}
+Co sponsors: {cosponsors}
 
-User Question: {user_query}
-
-Please explain based on the expert analysis provided above.`],
+User question: {user_query}`],
 ]);
 
 export const COST_ESTIMATE_PROMPT = ChatPromptTemplate.fromMessages([
@@ -212,7 +173,6 @@ export type BillPromptParams = {
 
 export const billChatPrompt = async (params: BillPromptParams) => {
   const {
-    error,
     voiceType,
     bill_analysis,
     cost_info,
@@ -225,7 +185,6 @@ export const billChatPrompt = async (params: BillPromptParams) => {
     cosponsors,
     bill_content
   } = params
-
   if (requestTweetPosting) {
     return await TWITTER_ENGAGEMENT_PROMPT.invoke({
       chat_history,
@@ -234,15 +193,6 @@ export const billChatPrompt = async (params: BillPromptParams) => {
       status,
       bill_content
     })
-  }
-
-  if (error) {
-    return await ERROR_HANDLING_PROMPT.formatMessages({
-      current_time,
-      chat_history,
-      user_query,
-      error
-    });
   }
 
   if (voiceType === 'uncleSam') {
@@ -266,7 +216,6 @@ export const billChatPrompt = async (params: BillPromptParams) => {
       cosponsors
     });
   }
-
   return await ANALYST_CHAT_PROMPT.formatMessages({
     current_time,
     chat_history,
