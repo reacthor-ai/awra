@@ -4,7 +4,7 @@ import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/
 import { Document } from "@langchain/core/documents";
 import { cohereEmbedding } from "@/agents/cohere";
 import { cosineSimilarity, maximalMarginalRelevance } from "@langchain/core/utils/math";
-import { MAIN_BILL_PROMPT } from "@/agents/bill/prompts";
+import { BILL_ANALYSIS_QUESTION, MAIN_BILL_PROMPT } from "@/agents/bill/prompts";
 import { chatAnthropic } from "@/agents/anthropic";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { BillAnalysisState } from "@/agents/bill/state";
@@ -84,7 +84,6 @@ export const semanticBillTool = tool(
       queryMatchSections: exactMatches.length,
       contentPreview: content.substring(0, 1000)
     };
-
     return {
       relevantSections,
       documents: [new Document({
@@ -117,10 +116,15 @@ export async function billAnalystAgent(state: typeof BillAnalysisState.State): P
     return state;
   }
 
+  const isXRequested = state.analysisState.requestTweetPosting && state.messages.length <= 0
+
+  const query = isXRequested ?
+    BILL_ANALYSIS_QUESTION
+    : state.analysisState.prompt
   try {
     const result = await semanticBillTool.invoke({
       url: state.analysisState.mainBill.url,
-      query: state.analysisState.prompt
+      query
     });
 
     const relevantContent = result.relevantSections
@@ -146,15 +150,14 @@ export async function billAnalystAgent(state: typeof BillAnalysisState.State): P
       bill_content: relevantContent,
       query: result.enhancedQuery
     });
-
     const analysis = await chatAnthropic.invoke(formattedPrompt, {
       tags: ["analyst"]
     });
-    debugger
     return {
       ...state,
       analysisState: {
         ...state.analysisState,
+        error: null,
         mainBill: {
           ...state.analysisState.mainBill,
           content: result.documents,

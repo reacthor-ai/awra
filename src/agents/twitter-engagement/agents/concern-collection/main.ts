@@ -12,7 +12,7 @@ export async function concernCollectionAgent(
 
   try {
     if (isDirectToConcernCollectionAgent(state)) {
-      const findLastMessageFromAI = state.messages.findLast((a) => a.getType() === 'ai')
+      const isFirstMessage = state.messages.length === 0
 
       const concernCollection = createConcernCollectionTool();
       const result = await concernCollection.invoke({
@@ -21,7 +21,7 @@ export async function concernCollectionAgent(
       });
 
       let updatedState: typeof TwitterEngagementState.State;
-      if (result && findLastMessageFromAI) {
+      if (result && !isFirstMessage) {
         updatedState = {
           ...state,
           engagementState: {
@@ -55,10 +55,20 @@ export async function concernCollectionAgent(
               status: 'init',
             },
             context: {
-              agentMessage: `This is likely the first message and the user either didn't provide what they're concern about.
-               So we need them to clarify. Provide clear guidance and search your context to engage in a discussion on what they're
-               concern is about.
-               ***tweet***
+              agentMessage: `Guide the user through understanding the bill and express their concerns.
+
+              CONTEXT - BILL INFORMATION:
+              Bill ID: ${state.engagementState.inputInfo.bill?.id}
+              Summary: ${state.engagementState.inputInfo.bill?.summary}
+              
+              DIRECTIVE:
+              1. Present the bill information clearly
+              2. Help user understand key points and potential impacts
+              3. Guide them to articulate their specific concerns
+              4. Ask about what changes they'd like to see
+              
+              Do not proceed to tweet suggestions until you have a clear understanding of their concerns. Focus on engaging in a meaningful discussion about the bill and its implications.
+              ****this will help the user come up with tweet suggestions*****
               `
             }
           },
