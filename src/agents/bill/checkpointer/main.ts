@@ -10,7 +10,7 @@ export async function createCheckpointer(config: CheckpointerConfig) {
   try {
     const isDev = process.env.NODE_ENV === 'development'
 
-    if (!isDev) {
+    if (isDev) {
       const checkpointer = PostgresSaver.fromConnString(process.env.PUBLIC_POSTGRES_URL!);
       await checkpointer.setup();
 
