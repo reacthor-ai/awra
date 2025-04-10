@@ -14,4 +14,7 @@ export const navigationLinks = {
   library: ({stateId}: { stateId: string }) => `/dashboard/c/${stateId}/library`,
   settings: ({stateId}: { stateId: string }) => `/dashboard/c/${stateId}/setting`,
   liveHouse: ({stateId}: { stateId: string }) => `/dashboard/c/${stateId}/live-house`,
+  articles: {
+    ['start-structured-add-dynamic-later']: `/article/1`
+  }
 } as const

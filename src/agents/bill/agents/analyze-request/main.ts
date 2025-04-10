@@ -1,21 +1,13 @@
 import { BillAnalysisState } from "@/agents/bill/state";
 import { createRequestAnalysisTool } from "@/agents/bill/agents/analyze-request/tool";
+import { AIMessage } from "@langchain/core/messages"
 
 export const analyzeRequestAgent = async (state: typeof BillAnalysisState.State): Promise<typeof BillAnalysisState.State> => {
-  if (!state.analysisState.prompt) {
-    return {
-      ...state,
-      analysisState: {
-        ...state.analysisState,
-        error: "No prompt provided for analysis",
-        status: 'error'
-      }
-    };
-  }
-
   try {
     const requestAnalysis = createRequestAnalysisTool();
-    const findLastMessageFromAI = state.messages.findLast((a) => a.getType() === 'ai')
+    const findLastMessageFromAI = state.messages.findLast((message) =>
+      message instanceof AIMessage
+    )
 
     const result = await requestAnalysis.invoke({
       prompt: state.analysisState.prompt,

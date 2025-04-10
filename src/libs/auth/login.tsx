@@ -76,11 +76,6 @@ export default function Login() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter>
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-            Sign in with Google
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   )

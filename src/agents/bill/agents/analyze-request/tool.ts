@@ -46,7 +46,7 @@ You are analyzing user messages to determine their intent regarding bill-related
 
 Key patterns to recognize:
 1. Tweet/Social Media Intents:
-   - Direct: "help me tweet about", "write a tweet", "post on twitter"
+   - Direct: "help me tweet about", "write a tweet", "post on twitter", "post on X", "write on X", "write on X"
    - Indirect: "share this online", "tell others about", "spread the word"
    - Action-oriented: "compose", "draft", "create a post"
 

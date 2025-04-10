@@ -1,0 +1,147 @@
+---
+title: 'Start Structured, Add Dynamic Elements Later: Building Deterministic Multi-Agent Systems'
+date: '2025-01-19'
+description: 'Lessons learned from building structured multi-agent systems in TypeScript'
+tags: ['typescript', 'agents', 'architecture', 'llm']
+---
+
+When building the engagement feature for Awra, I discovered some interesting patterns in creating deterministic multi-agent systems. After introducing RAG-based paper discussions, user feedback highlighted concerns about bills specifically. This led me to create a social media presence ([AwraAI](https://x.com/AwraAi)) to address these concerns. While developing the X engagement agent, I found an effective structural approach that helped keep the architecture focused.
+
+## The Architecture
+
+The foundation of my architecture separates bill analysis and social media engagement into distinct agents. At the top level, an `analyzeRequestAgent` parses user input to determine posting intent and tracks conversation flow through the AI's last message. This agent uses intent-based parsing to smoothly transition between different modes while maintaining context. Users can freely discuss bills and post to X while retaining all context.
+
+Here's an example of the analyze request agent:
+
+```typescript
+export const analyzeRequestAgent = async (
+state: typeof BillAnalysisState.State):
+Promise<typeof BillAnalysisState.State> => {
+    try {
+        const requestAnalysis = createRequestAnalysisTool();
+        const findLastMessageFromAI = state.messages.findLast((a) =>
+            a instanceof AIMessage
+        )
+
+        const result = await requestAnalysis.invoke({
+            prompt: state.analysisState.prompt,
+            lastMessage: findLastMessageFromAI?.content as string ?? ''
+        });
+
+        return {
+            ...state,
+            analysisState: {
+                ...state.analysisState,
+                requestTweetPosting: result.type === 'tweet',
+                status: !summary ? 'analyzing_main' : 'init'
+            }
+        };
+    }
+}
+```
+
+Throughout this article, you'll see tools that take input, prompt, and outputs it into JSON. This approach proved extremely helpful by having the LLM synthesize structured output rather than handling it dynamically.
+
+## The Workflow
+
+The workflow uses conditional edges to determine which agent to execute based on conversation context. For example, `isTweetWithSummaryRequested` checks if we're at the start or requesting the tweet agent:
+
+```typescript
+workflow
+    .addEdge(START, "analyze_request")
+    .addConditionalEdges(
+        "analyze_request",
+        (state) => {
+            if (isTweetWithSummaryRequested(state)) {
+                return "twitter_engagement";
+            }
+            return "safety_check";
+        },
+        {
+            safety_check: "safety_check",
+            twitter_engagement: "twitter_engagement",
+            [END]: END
+        }
+    )
+```
+
+Our Twitter engagement agent consists of a multi-layered agent flow:
+
+```typescript
+workflow
+    .addNode("collect_concern", concernCollectionAgent)
+    .addNode("analyze_cosponsors", representativeSelectionAgent)
+    .addNode("suggest_tweets", tweetSuggestionAgent)
+    .addNode("compose_tweet", tweetCompositionAgent)
+```
+
+## State Management
+
+A key learning was around state management. Initially, I used a leadership agent to control conversation flow, but this led to hallucination issues where the LLM would sometimes skip steps or post tweets without explicit consent. Instead, I found that combining state transitions with contextual awareness provided better control.
+
+Let's look at the `representativeSelectionAgent` which demonstrates this approach:
+
+```typescript
+export async function representativeSelectionAgent(
+state: typeof TwitterEngagementState.State):
+Promise<typeof TwitterEngagementState.State> {
+        if (status === 'awaiting_representative_selection') {
+            const selectionTool = createSelectionTool();
+            const selectionResult = await selectionTool.invoke({
+                userResponse: prompt,
+                cosponsors: cosponsors || []
+            });
+
+            if (selectionResult.type === 'retry') {
+                return {
+                    cosponsorsSelection: {
+                        selectedRepresentative: null,
+                        userVerifiedRepresentative: false,
+                    },
+                    processManagement: {
+                        ...state.processManagement,
+                        status: 'awaiting_representative_selection',
+                    },
+                    context: {
+                        agentMessage: `Please try selecting a representative again.`
+                    }
+                };
+            }
+
+            if (selectionResult.type === 'skipped') {
+                return {
+                    cosponsorsSelection: {
+                        selectedRepresentative: null,
+                        userVerifiedRepresentative: true,
+                    },
+                    processManagement: {
+                        status: 'generating_tweet_suggestions',
+                    }
+                };
+            }
+        }
+}
+```
+
+## Tooling and JSON Structure
+
+The selection tool processes user input through a structured JSON format, allowing for programmatic control while maintaining flexibility. This approach of using tools to generate structured outputs rather than free-form text significantly improved reliability:
+
+```typescript
+const selectionOutputSchema = z.object({
+    type: z.enum(['selected', 'skipped', 'retry', 'invalid']),
+    selectedRepresentative: cosponsorSchema.nullable(),
+    reasoning: z.string()
+});
+```
+
+## Conclusion
+
+Starting with a structured approach before adding dynamic elements provided several key benefits:
+
+1. Better deterministic behavior through clear state transitions
+2. Improved error handling via structured outputs
+3. Easier testing and debugging through isolated components
+4. Natural alignment with user expectations around interaction patterns
+
+The architecture demonstrates that starting with rigid structure doesn't preclude flexibility - it actually enables it by providing clear boundaries for dynamic behavior to operate within.

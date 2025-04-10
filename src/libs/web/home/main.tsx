@@ -10,6 +10,7 @@ import { Logo } from "./logo"
 import { signIn } from "next-auth/react"
 import { navigationLinks } from "@/utils/nav-links";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 const fadeIn = {
   initial: {opacity: 0, y: 20},
@@ -47,6 +48,15 @@ export default function LandingPage() {
           animate="animate"
           variants={stagger}
         >
+          <Badge
+            onClick={() => {
+              router.push(
+                navigationLinks.articles['start-structured-add-dynamic-later']
+              )
+            }}
+            variant="secondary" className="h-8 px-4 text-xs font-medium mb-4 cursor-pointer">
+            NEW: Start Structured, Add Dynamic Elements Later.
+          </Badge>
           <motion.div variants={fadeIn} className="mb-6 flex justify-center">
             <Logo />
           </motion.div>
